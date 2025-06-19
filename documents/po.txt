@@ -1,0 +1,51 @@
+Settings
+ - Company Name
+ - Street Address
+ - City, State, Zipcode
+ - Phone
+ - website
+ - email
+
+Purchase Order
+- id
+- po_number
+- po_date
+- vendor_id
+- sub_total
+- tax
+- shipping
+- other
+- grand_total
+- comments
+- status
+- payment_status
+- expected_delivery_date
+
+Purchase_order_items
+- id
+- purchase_order_id
+- item_name
+- Qty
+- unit_price
+- gst_percentage
+- gst
+- total
+
+
+Vendors
+- id
+- company_name
+- contact_person_name
+- address
+- city,state,zipcode
+- phone
+- email
+- referenced_by
+
+ShipTo
+- id 
+- name
+- company_name
+- address
+- city,state,zipcode
+- phone
