@@ -10,6 +10,8 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Jetstream\HasTeams;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
+use Spatie\Permission\Models\Role;
 
 class User extends Authenticatable
 {
@@ -21,6 +23,7 @@ class User extends Authenticatable
     use HasTeams;
     use Notifiable;
     use TwoFactorAuthenticatable;
+    use HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -65,5 +68,24 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    // Assign a role to a user
+    public function assignRole($role)
+    {
+        $this->roles()->syncWithoutDetaching($role);
+    }
+
+    // Give permission to a role
+    public function giveRolePermission($role, $permission)
+    {
+        $role = Role::findByName($role);
+        $role->givePermissionTo($permission);
+    }
+
+    // Give permission directly to a user
+    public function givePermissionTo($permission)
+    {
+        $this->permissions()->syncWithoutDetaching($permission);
     }
 }
