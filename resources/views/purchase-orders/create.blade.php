@@ -23,12 +23,12 @@
 
     <form action="{{ route('purchase-orders.store') }}" method="POST" id="po-form" class="bg-white p-6 rounded-lg shadow-md">
         @csrf
+        <input type="hidden" name="po_number" id="po_number_input">
         <input type="hidden" name="vendor_id" id="vendor_id_input" required>
         <input type="hidden" name="ship_to_address_id" id="ship_to_address_id_input" required>
-        <input type="hidden" name="po_number" id="po_number_input">
 
         <!-- PO Details -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
             <div>
                 <label for="po_number_display" class="block text-sm font-medium text-gray-700">PO Number</label>
                 <input type="text" id="po_number_display" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-100" disabled>
@@ -36,6 +36,10 @@
             <div>
                 <label for="po_date" class="block text-sm font-medium text-gray-700">PO Date</label>
                 <input type="date" name="po_date" id="po_date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required value="{{ old('po_date', date('Y-m-d')) }}">
+            </div>
+            <div>
+                <label for="expected_delivery_date" class="block text-sm font-medium text-gray-700">Expected Delivery Date</label>
+                <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" value="{{ old('expected_delivery_date', now()->addWeek()->format('Y-m-d')) }}">
             </div>
             <div>
                 <label for="status" class="block text-sm font-medium text-gray-700">Order Status</label>
@@ -55,10 +59,7 @@
                     <option value="partially_paid" @if(old('payment_status') == 'partially_paid') selected @endif>Partially Paid</option>
                 </select>
             </div>
-            <div>
-                <label for="expected_delivery_date" class="block text-sm font-medium text-gray-700">Expected Delivery Date</label>
-                <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" value="{{ old('expected_delivery_date') }}">
-            </div>
+
         </div>
 
         <!-- Vendor and Ship To Sections -->
@@ -242,19 +243,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function renderAddresses(filter = '') {
         addressList.innerHTML = '';
-        shipToAddresses.filter(a => a.name.toLowerCase().includes(filter.toLowerCase()) || a.address_line_1.toLowerCase().includes(filter.toLowerCase())).forEach(address => {
+        const filteredAddresses = shipToAddresses.filter(a => a.name.toLowerCase().includes(filter.toLowerCase()) || (a.address && a.address.toLowerCase().includes(filter.toLowerCase())));
+
+        if (filteredAddresses.length === 0) {
+            addressList.innerHTML = '<p class="text-gray-500">No addresses found.</p>';
+            return;
+        }
+
+        filteredAddresses.forEach(address => {
             const div = document.createElement('div');
             div.className = 'p-2 border rounded-md cursor-pointer hover:bg-gray-100';
-            div.textContent = `${address.name} - ${address.address_line_1}, ${address.city}`;
-            div.dataset.id = address.id;
-            div.addEventListener('click', () => {
-                addressIdInput.value = address.id;
-                addressDetails.innerHTML = `
-                    <p><strong>${address.name}</strong></p>
-                    <p>${address.address_line_1}, ${address.city}, ${address.state} - ${address.zipcode}</p>
-                    <p>${address.contact_person || ''} | ${address.phone || ''}</p>
-                `;
-                addressModal.classList.add('hidden');
+            div.textContent = `${address.name} - ${address.address}, ${address.city}`;
+            div.dataset.addressId = address.id; // Use a specific data attribute
+
+            div.addEventListener('click', function () {
+                const selectedId = this.dataset.addressId;
+                const selectedAddress = shipToAddresses.find(a => a.id == selectedId);
+
+                if (selectedAddress) {
+                    addressIdInput.value = selectedAddress.id;
+                    addressDetails.innerHTML = `
+                        <p><strong>${selectedAddress.name}</strong></p>
+                        <p>${selectedAddress.address}, ${selectedAddress.city}, ${selectedAddress.state} - ${selectedAddress.zipcode}</p>
+                        <p>${selectedAddress.contact_person || ''} | ${selectedAddress.phone || ''}</p>
+                    `;
+                    addressModal.classList.add('hidden');
+                }
             });
             addressList.appendChild(div);
         });

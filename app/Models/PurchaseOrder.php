@@ -16,6 +16,7 @@ class PurchaseOrder extends Model
         'po_number',
         'po_date',
         'vendor_id',
+        'ship_to_address_id',
         'sub_total',
         'tax',
         'shipping',

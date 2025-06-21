@@ -16,6 +16,7 @@ class ShipToAddress extends Model
         'team_id',
         'name',
         'company_name',
+        'contact_person',
         'address',
         'city',
         'state',
