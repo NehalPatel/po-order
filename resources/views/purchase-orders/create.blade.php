@@ -1,200 +1,220 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="space-y-6">
-    <div>
-        <h1 class="text-2xl font-bold text-gray-900">Create New Purchase Order</h1>
-        <p class="text-gray-600 mt-1">Fill out the form below to generate a new PO.</p>
-    </div>
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-6">Create New Purchase Order</h1>
 
-    @if ($errors->any())
-        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
+        @if (session('error'))
+            <div class="bg-red-500 text-white p-4 rounded mb-4">
+                {{ session('error') }}
+            </div>
+        @endif
 
-    <form action="{{ route('purchase-orders.store') }}" method="POST">
-        @csrf
-        <div class="space-y-8">
-            <!-- Main Details -->
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Main Details</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="vendor_id" class="block text-sm font-medium text-gray-700">Vendor</label>
-                        <select id="vendor_id" name="vendor_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
-                            <option value="">Select a vendor</option>
-                            @foreach($vendors as $vendor)
-                                <option value="{{ $vendor->id }}" {{ old('vendor_id') == $vendor->id ? 'selected' : '' }}>{{ $vendor->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label for="po_date" class="block text-sm font-medium text-gray-700">Order Date</label>
-                        <input type="date" id="po_date" name="po_date" value="{{ old('po_date', now()->format('Y-m-d')) }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                    </div>
-                    <div>
-                        <label for="ship_to_address_id" class="block text-sm font-medium text-gray-700">Ship To Address</label>
-                         <select id="ship_to_address_id" name="ship_to_address_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
-                            <option value="">Select a shipping address</option>
-                            @foreach($shipToAddresses as $address)
-                                <option value="{{ $address->id }}" {{ old('ship_to_address_id') == $address->id ? 'selected' : '' }}>{{ $address->name }} - {{ $address->address }}, {{ $address->city }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label for="expected_delivery_date" class="block text-sm font-medium text-gray-700">Expected Delivery Date</label>
-                        <input type="date" id="expected_delivery_date" name="expected_delivery_date" value="{{ old('expected_delivery_date') }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                    </div>
+        <form action="{{ route('purchase-orders.store') }}" method="POST" id="po-form" class="bg-white p-6 rounded-lg shadow-md">
+            @csrf
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <div>
+                    <label for="po_number_display" class="block text-sm font-medium text-gray-700">PO Number</label>
+                    <input type="text" id="po_number_display" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-100" disabled>
+                </div>
+                <div>
+                    <label for="vendor_id" class="block text-sm font-medium text-gray-700">Vendor</label>
+                    <select name="vendor_id" id="vendor_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
+                        @foreach($vendors as $vendor)
+                            <option value="{{ $vendor->id }}" {{ old('vendor_id') == $vendor->id ? 'selected' : '' }}>{{ $vendor->company_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label for="po_date" class="block text-sm font-medium text-gray-700">PO Date</label>
+                    <input type="date" name="po_date" id="po_date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required value="{{ old('po_date', date('Y-m-d')) }}">
+                </div>
+                <div>
+                    <label for="expected_delivery_date" class="block text-sm font-medium text-gray-700">Expected Delivery Date</label>
+                    <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" value="{{ old('expected_delivery_date') }}">
+                </div>
+                <div>
+                    <label for="ship_to_address_id" class="block text-sm font-medium text-gray-700">Ship To Address</label>
+                    <select name="ship_to_address_id" id="ship_to_address_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
+                        @foreach($shipToAddresses as $address)
+                            <option value="{{ $address->id }}" {{ old('ship_to_address_id') == $address->id ? 'selected' : '' }}>{{ $address->name }} - {{ $address->address_line_1 }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label for="status" class="block text-sm font-medium text-gray-700">Order Status</label>
+                    <select name="status" id="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                        <option value="draft" selected>Draft</option>
+                        <option value="sent">Sent</option>
+                        <option value="approved">Approved</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="payment_status" class="block text-sm font-medium text-gray-700">Payment Status</label>
+                    <select name="payment_status" id="payment_status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                        <option value="unpaid" selected>Unpaid</option>
+                        <option value="paid">Paid</option>
+                        <option value="partially_paid">Partially Paid</option>
+                    </select>
                 </div>
             </div>
 
-            <!-- Items -->
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-medium text-gray-900">Items</h3>
-                    <button type="button" id="add-item-btn" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm">Add Item</button>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead>
-                            <tr>
-                                <th class="px-2 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-5/12">Item Name</th>
-                                <th class="px-2 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Qty</th>
-                                <th class="px-2 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Unit Price</th>
-                                <th class="px-2 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">GST (%)</th>
-                                <th class="px-2 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Total</th>
-                                <th class="px-2 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="items-container" class="bg-white divide-y divide-gray-200">
-                           <!-- JS will populate this -->
-                        </tbody>
-                    </table>
-                </div>
+            <div class="mt-8">
+                <h2 class="text-2xl font-bold mb-4">Items</h2>
+                <table class="min-w-full bg-white">
+                    <thead class="bg-gray-200">
+                        <tr>
+                            <th class="py-2 px-4">Item Name</th>
+                            <th class="py-2 px-4">Description</th>
+                            <th class="py-2 px-4">Qty</th>
+                            <th class="py-2 px-4">Unit Price</th>
+                            <th class="py-2 px-4">GST (%)</th>
+                            <th class="py-2 px-4">GST Amount</th>
+                            <th class="py-2 px-4">Total</th>
+                            <th class="py-2 px-4"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="items-tbody">
+                        <!-- Item rows will be added here by JavaScript -->
+                    </tbody>
+                </table>
+                <button type="button" id="add-item-btn" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Add Item</button>
             </div>
 
-            <!-- Totals & Notes -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                     <h3 class="text-lg font-medium text-gray-900 mb-4">Notes & Terms</h3>
-                    <div>
+            <input type="hidden" name="po_number" id="po_number_input">
+            <input type="hidden" name="sub_total" id="sub_total_input">
+            <input type="hidden" name="total_gst" id="total_gst_input">
+            <input type="hidden" name="grand_total" id="grand_total_input">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                <div>
+                    <div class="mb-4">
                         <label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>
-                        <textarea id="notes" name="notes" rows="4" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">{{ old('notes') }}</textarea>
+                        <textarea name="notes" id="notes" rows="4" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">{{ old('notes') }}</textarea>
                     </div>
-                    <div class="mt-4">
-                        <label for="terms_conditions" class="block text-sm font-medium text-gray-700">Terms & Conditions</label>
-                        <textarea id="terms_conditions" name="terms_conditions" rows="4" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">{{ old('terms_conditions') }}</textarea>
+                    <div>
+                        <label for="terms_and_conditions" class="block text-sm font-medium text-gray-700">Terms & Conditions</label>
+                        <textarea name="terms_and_conditions" id="terms_and_conditions" rows="4" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">{{ old('terms_and_conditions') }}</textarea>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-lg shadow-sm p-6 flex flex-col justify-between">
-                     <h3 class="text-lg font-medium text-gray-900 mb-4">Summary</h3>
-                    <div class="space-y-4">
-                         <div class="flex justify-between items-center">
-                            <span class="text-gray-600">Subtotal:</span>
-                            <span id="subtotal" class="font-medium">₹0.00</span>
-                            <input type="hidden" name="sub_total" id="sub_total_input">
-                        </div>
-                         <div class="flex justify-between items-center">
-                            <span class="text-gray-600">Total GST:</span>
-                            <span id="total-gst" class="font-medium">₹0.00</span>
-                            <input type="hidden" name="total_gst" id="total_gst_input">
-                        </div>
-                        <div class="flex justify-between items-center text-xl font-bold">
-                            <span>Grand Total:</span>
-                            <span id="grand-total">₹0.00</span>
-                            <input type="hidden" name="grand_total" id="grand_total_input">
-                        </div>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <h3 class="text-xl font-bold mb-4">Summary</h3>
+                    <div class="flex justify-between mb-2">
+                        <span>Sub Total</span>
+                        <span id="sub-total">₹0.00</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span>Total GST</span>
+                        <span id="total-gst">₹0.00</span>
+                    </div>
+                    <div class="flex justify-between font-bold text-lg">
+                        <span>Grand Total</span>
+                        <span id="grand-total">₹0.00</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Actions -->
-            <div class="flex justify-end space-x-4">
-                <a href="{{ route('purchase-orders.index') }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg">Cancel</a>
-                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg">Create PO</button>
+            <div class="mt-8 flex justify-end space-x-4">
+                <a href="{{ route('purchase-orders.index') }}" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300">Cancel</a>
+                <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">Save</button>
             </div>
-        </div>
-    </form>
-</div>
+        </form>
+    </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const itemsContainer = document.getElementById('items-container');
     const addItemBtn = document.getElementById('add-item-btn');
+    const itemsTbody = document.getElementById('items-tbody');
     let itemIndex = 0;
 
-    function createItemRow() {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td class="px-2 py-2"><input type="text" name="items[${itemIndex}][item_name]" class="form-input w-full border-gray-300 rounded-md shadow-sm"></td>
-            <td class="px-2 py-2"><input type="number" name="items[${itemIndex}][qty]" class="item-qty form-input w-full border-gray-300 rounded-md shadow-sm" value="1" min="1"></td>
-            <td class="px-2 py-2"><input type="number" name="items[${itemIndex}][unit_price]" class="item-price form-input w-full border-gray-300 rounded-md shadow-sm" placeholder="0.00" min="0" step="0.01"></td>
-            <td class="px-2 py-2"><input type="number" name="items[${itemIndex}][gst_percentage]" class="item-gst-percent form-input w-full border-gray-300 rounded-md shadow-sm" placeholder="0" min="0" value="0"></td>
-            <td class="px-2 py-2"><input type="text" class="item-total form-input w-full bg-gray-100 border-gray-300 rounded-md shadow-sm" readonly></td>
-            <td class="px-2 py-2 text-center"><button type="button" class="remove-item-btn text-red-500 hover:text-red-700">&times;</button></td>
-            <input type="hidden" name="items[${itemIndex}][gst]" class="item-gst-amount">
-            <input type="hidden" name="items[${itemIndex}][total]" class="item-total-amount">
-        `;
-        itemsContainer.appendChild(row);
-        itemIndex++;
+    // Generate and display PO Number
+    const poNumberInput = document.getElementById('po_number_input');
+    const poNumberDisplay = document.getElementById('po_number_display');
+    if (!poNumberInput.value) {
+        const date = new Date();
+        const year = date.getFullYear();
+        const month = ('0' + (date.getMonth() + 1)).slice(-2);
+        const day = ('0' + date.getDate()).slice(-2);
+        const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const poNumber = `PO-${year}${month}${day}-${randomPart}`;
+        poNumberInput.value = poNumber;
+        poNumberDisplay.value = poNumber;
     }
 
-    addItemBtn.addEventListener('click', createItemRow);
+    function addItemRow() {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="border px-4 py-2"><input type="text" name="items[${itemIndex}][item_name]" class="w-full border-gray-300 rounded" required></td>
+            <td class="border px-4 py-2"><input type="text" name="items[${itemIndex}][description]" class="w-full border-gray-300 rounded"></td>
+            <td class="border px-4 py-2"><input type="number" name="items[${itemIndex}][qty]" class="w-20 border-gray-300 rounded item-qty" required min="1" value="1"></td>
+            <td class="border px-4 py-2"><input type="number" step="0.01" name="items[${itemIndex}][unit_price]" class="w-24 border-gray-300 rounded item-price" required min="0" value="0"></td>
+            <td class="border px-4 py-2"><input type="number" step="0.01" name="items[${itemIndex}][gst_percent]" class="w-20 border-gray-300 rounded item-gst" min="0" value="0"></td>
+            <td class="border px-4 py-2 item-gst-amount">₹0.00</td>
+            <td class="border px-4 py-2 item-total">₹0.00</td>
+            <td class="border px-4 py-2 text-center">
+                <button type="button" class="text-red-500 hover:text-red-700 remove-item-btn p-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </td>
+        `;
+        itemsTbody.appendChild(tr);
+        itemIndex++;
+        updateTotals();
+    }
 
-    itemsContainer.addEventListener('click', function (e) {
-        if (e.target.classList.contains('remove-item-btn')) {
+    addItemBtn.addEventListener('click', addItemRow);
+
+    itemsTbody.addEventListener('click', function (e) {
+        if (e.target.closest('.remove-item-btn')) {
             e.target.closest('tr').remove();
             updateTotals();
         }
     });
 
-    itemsContainer.addEventListener('input', function(e) {
-        if (e.target.classList.contains('item-qty') || e.target.classList.contains('item-price') || e.target.classList.contains('item-gst-percent')) {
+    itemsTbody.addEventListener('input', function(e) {
+        if (e.target.classList.contains('item-qty') || e.target.classList.contains('item-price') || e.target.classList.contains('item-gst')) {
             updateTotals();
         }
     });
 
     function updateTotals() {
-        let subtotal = 0;
+        let subTotal = 0;
         let totalGst = 0;
 
-        itemsContainer.querySelectorAll('tr').forEach(row => {
+        itemsTbody.querySelectorAll('tr').forEach(row => {
             const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
             const price = parseFloat(row.querySelector('.item-price').value) || 0;
-            const gstPercent = parseFloat(row.querySelector('.item-gst-percent').value) || 0;
+            const gstPercent = parseFloat(row.querySelector('.item-gst').value) || 0;
 
-            const baseTotal = qty * price;
-            const gstAmount = baseTotal * (gstPercent / 100);
-            const total = baseTotal + gstAmount;
+            const itemSubTotal = qty * price;
+            const itemGst = itemSubTotal * (gstPercent / 100);
+            const itemTotal = itemSubTotal + itemGst;
 
-            row.querySelector('.item-total').value = `₹${total.toFixed(2)}`;
-            row.querySelector('.item-gst-amount').value = gstAmount.toFixed(2);
-            row.querySelector('.item-total-amount').value = total.toFixed(2);
+            row.querySelector('.item-gst-amount').textContent = '₹' + itemGst.toFixed(2);
+            row.querySelector('.item-total').textContent = '₹' + itemTotal.toFixed(2);
 
-            subtotal += baseTotal;
-            totalGst += gstAmount;
+            subTotal += itemSubTotal;
+            totalGst += itemGst;
         });
 
-        const grandTotal = subtotal + totalGst;
+        const grandTotal = subTotal + totalGst;
 
-        document.getElementById('subtotal').textContent = `₹${subtotal.toFixed(2)}`;
-        document.getElementById('sub_total_input').value = subtotal.toFixed(2);
+        document.getElementById('sub-total').textContent = '₹' + subTotal.toFixed(2);
+        document.getElementById('total-gst').textContent = '₹' + totalGst.toFixed(2);
+        document.getElementById('grand-total').textContent = '₹' + grandTotal.toFixed(2);
 
-        document.getElementById('total-gst').textContent = `₹${totalGst.toFixed(2)}`;
+        document.getElementById('sub_total_input').value = subTotal.toFixed(2);
         document.getElementById('total_gst_input').value = totalGst.toFixed(2);
-
-        document.getElementById('grand-total').textContent = `₹${grandTotal.toFixed(2)}`;
         document.getElementById('grand_total_input').value = grandTotal.toFixed(2);
     }
 
-    // Add initial row
-    createItemRow();
+    // Add the first row by default
+    addItemRow();
 });
 </script>
 @endsection

@@ -40,16 +40,19 @@ class PurchaseOrderController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'po_number' => 'required|string|max:255|unique:purchase_orders',
             'po_date' => 'required|date',
             'vendor_id' => 'required|exists:vendors,id',
-            'comments' => 'nullable|string',
+            'ship_to_address_id' => 'required|exists:ship_to_addresses,id',
+            'notes' => 'nullable|string',
+            'terms_and_conditions' => 'nullable|string',
             'sub_total' => 'required|numeric',
-            'tax' => 'required|numeric',
-            'shipping' => 'required|numeric',
+            'total_gst' => 'required|numeric',
             'grand_total' => 'required|numeric',
+            'status' => 'required|string|in:draft,sent,approved,completed,cancelled',
+            'payment_status' => 'required|string|in:unpaid,paid,partially_paid',
             'items' => 'required|array|min:1',
             'items.*.item_name' => 'required|string|max:255',
+            'items.*.description' => 'nullable|string',
             'items.*.qty' => 'required|numeric|min:0',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.gst_percentage' => 'required|numeric|min:0',
@@ -58,42 +61,41 @@ class PurchaseOrderController extends Controller
         ]);
 
         try {
-            DB::beginTransaction();
+            DB::transaction(function () use ($validatedData) {
+                $po_number = 'PO-' . date('Ymd') . '-' . strtoupper(uniqid());
 
-            $purchaseOrder = PurchaseOrder::create([
-                'team_id' => Auth::user()->currentTeam->id,
-                'po_number' => $validatedData['po_number'],
-                'po_date' => $validatedData['po_date'],
-                'vendor_id' => $validatedData['vendor_id'],
-                'comments' => $validatedData['comments'],
-                'sub_total' => $validatedData['sub_total'],
-                'tax' => $validatedData['tax'],
-                'shipping' => $validatedData['shipping'],
-                'other' => 0, // Assuming 'other' is not in the form for now
-                'grand_total' => $validatedData['grand_total'],
-                'status' => 'draft',
-                'payment_status' => 'unpaid',
-            ]);
-
-            foreach ($validatedData['items'] as $itemData) {
-                // Manually calculate GST for now.
-                // This could be made more robust.
-                $purchaseOrder->items()->create([
-                    'item_name' => $itemData['item_name'],
-                    'qty' => $itemData['qty'],
-                    'unit_price' => $itemData['unit_price'],
-                    'gst_percentage' => $itemData['gst_percentage'],
-                    'gst' => $itemData['gst'],
-                    'total' => $itemData['total'],
+                $purchaseOrder = PurchaseOrder::create([
+                    'team_id' => Auth::user()->currentTeam->id,
+                    'po_number' => $po_number,
+                    'po_date' => $validatedData['po_date'],
+                    'vendor_id' => $validatedData['vendor_id'],
+                    'ship_to_address_id' => $validatedData['ship_to_address_id'],
+                    'notes' => $validatedData['notes'],
+                    'terms_and_conditions' => $validatedData['terms_and_conditions'],
+                    'sub_total' => $validatedData['sub_total'],
+                    'total_gst' => $validatedData['total_gst'],
+                    'grand_total' => $validatedData['grand_total'],
+                    'status' => $validatedData['status'] ?? 'draft',
+                    'payment_status' => $validatedData['payment_status'] ?? 'unpaid',
                 ]);
-            }
 
-            DB::commit();
+                foreach ($validatedData['items'] as $itemData) {
+                    // Manually calculate GST for now.
+                    // This could be made more robust.
+                    $purchaseOrder->items()->create([
+                        'item_name' => $itemData['item_name'],
+                        'qty' => $itemData['qty'],
+                        'unit_price' => $itemData['unit_price'],
+                        'gst_percentage' => $itemData['gst_percentage'],
+                        'gst' => $itemData['gst'],
+                        'total' => $itemData['total'],
+                    ]);
+                }
+            });
 
             return redirect()->route('purchase-orders.index')->with('success', 'Purchase Order created successfully.');
 
         } catch (\Exception $e) {
-            DB::rollBack();
             return back()->withInput()->with('error', 'Failed to create purchase order. Error: ' . $e->getMessage());
         }
     }
@@ -128,16 +130,20 @@ class PurchaseOrderController extends Controller
     public function update(Request $request, PurchaseOrder $purchaseOrder)
     {
         $validatedData = $request->validate([
+            'po_number' => 'required|string|max:255|unique:purchase_orders,po_number,' . $purchaseOrder->id,
             'vendor_id' => 'required|exists:vendors,id',
-            'order_date' => 'required|date',
-            'expected_date' => 'required|date',
+            'po_date' => 'required|date',
+            'expected_delivery_date' => 'required|date',
             'ship_to_address_id' => 'required|exists:ship_to_addresses,id',
             'notes' => 'nullable|string',
-            'terms_conditions' => 'nullable|string',
+            'terms_and_conditions' => 'nullable|string',
             'sub_total' => 'required|numeric',
             'total_gst' => 'required|numeric',
             'grand_total' => 'required|numeric',
+            'status' => 'required|string|in:draft,sent,approved,completed,cancelled',
+            'payment_status' => 'required|string|in:unpaid,paid,partially_paid',
             'items' => 'required|array',
+            'items.*.id' => 'nullable|integer|exists:purchase_order_items,id',
             'items.*.item_name' => 'required|string|max:255',
             'items.*.qty' => 'required|numeric|min:0',
             'items.*.unit_price' => 'required|numeric|min:0',
@@ -146,14 +152,33 @@ class PurchaseOrderController extends Controller
             'items.*.total' => 'required|numeric|min:0',
         ]);
 
-        $purchaseOrder->update($validatedData);
+        DB::transaction(function () use ($purchaseOrder, $validatedData) {
+            $purchaseOrder->update([
+                'po_number' => $validatedData['po_number'],
+                'vendor_id' => $validatedData['vendor_id'],
+                'po_date' => $validatedData['po_date'],
+                'expected_delivery_date' => $validatedData['expected_delivery_date'],
+                'ship_to_address_id' => $validatedData['ship_to_address_id'],
+                'notes' => $validatedData['notes'],
+                'terms_and_conditions' => $validatedData['terms_and_conditions'],
+                'sub_total' => $validatedData['sub_total'],
+                'total_gst' => $validatedData['total_gst'],
+                'grand_total' => $validatedData['grand_total'],
+                'status' => $validatedData['status'],
+                'payment_status' => $validatedData['payment_status'],
+            ]);
 
-        // Delete old items and add new ones
-        $purchaseOrder->items()->delete();
+            // Delete old items and add new ones
+            $existingIds = $purchaseOrder->items->pluck('id')->toArray();
+            $purchaseOrder->items()->whereNotIn('id', $existingIds)->delete();
 
-        foreach ($validatedData['items'] as $itemData) {
-            $purchaseOrder->items()->create($itemData);
-        }
+            foreach ($validatedData['items'] as $itemData) {
+                $purchaseOrder->items()->updateOrCreate(
+                    ['id' => $itemData['id']],
+                    $itemData
+                );
+            }
+        });
 
         return redirect()->route('purchase-orders.index')->with('success', 'Purchase Order updated successfully.');
     }

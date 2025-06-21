@@ -22,7 +22,8 @@ return new class extends Migration
             $table->decimal('shipping', 15, 2);
             $table->decimal('other', 15, 2)->default(0);
             $table->decimal('grand_total', 15, 2);
-            $table->text('comments')->nullable();
+            $table->text('notes')->nullable();
+            $table->text('terms_and_conditions')->nullable();
             $table->string('status')->default('draft'); // e.g., draft, sent, approved, completed
             $table->string('payment_status')->default('unpaid'); // e.g., unpaid, paid, partially_paid
             $table->date('expected_delivery_date')->nullable();
