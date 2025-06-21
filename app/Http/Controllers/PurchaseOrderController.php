@@ -41,55 +41,59 @@ class PurchaseOrderController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
+            'po_number' => 'required|string|unique:purchase_orders,po_number',
             'po_date' => 'required|date',
             'vendor_id' => 'required|exists:vendors,id',
             'ship_to_address_id' => 'required|exists:ship_to_addresses,id',
+            'sub_total' => 'required|numeric',
+            'tax' => 'required|numeric',
+            'shipping' => 'required|numeric',
+            'other' => 'required|numeric',
+            'grand_total' => 'required|numeric',
             'notes' => 'nullable|string',
             'terms_and_conditions' => 'nullable|string',
-            'sub_total' => 'required|numeric',
-            'total_gst' => 'required|numeric',
-            'grand_total' => 'required|numeric',
             'status' => 'required|string|in:draft,sent,approved,completed,cancelled',
             'payment_status' => 'required|string|in:unpaid,paid,partially_paid',
+            'expected_delivery_date' => 'nullable|date',
             'items' => 'required|array|min:1',
             'items.*.item_name' => 'required|string|max:255',
-            'items.*.description' => 'nullable|string',
-            'items.*.qty' => 'required|numeric|min:0',
+            'items.*.qty' => 'required|numeric|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.gst_percentage' => 'required|numeric|min:0',
-            'items.*.gst' => 'required|numeric|min:0',
-            'items.*.total' => 'required|numeric|min:0',
         ]);
 
         try {
             DB::transaction(function () use ($validatedData) {
-                $po_number = 'PO-' . date('Ymd') . '-' . strtoupper(uniqid());
-
                 $purchaseOrder = PurchaseOrder::create([
                     'team_id' => Auth::user()->currentTeam->id,
-                    'po_number' => $po_number,
+                    'po_number' => $validatedData['po_number'],
                     'po_date' => $validatedData['po_date'],
                     'vendor_id' => $validatedData['vendor_id'],
                     'ship_to_address_id' => $validatedData['ship_to_address_id'],
+                    'sub_total' => $validatedData['sub_total'],
+                    'tax' => $validatedData['tax'],
+                    'shipping' => $validatedData['shipping'],
+                    'other' => $validatedData['other'],
+                    'grand_total' => $validatedData['grand_total'],
                     'notes' => $validatedData['notes'],
                     'terms_and_conditions' => $validatedData['terms_and_conditions'],
-                    'sub_total' => $validatedData['sub_total'],
-                    'total_gst' => $validatedData['total_gst'],
-                    'grand_total' => $validatedData['grand_total'],
                     'status' => $validatedData['status'] ?? 'draft',
                     'payment_status' => $validatedData['payment_status'] ?? 'unpaid',
+                    'expected_delivery_date' => $validatedData['expected_delivery_date'],
                 ]);
 
                 foreach ($validatedData['items'] as $itemData) {
-                    // Manually calculate GST for now.
-                    // This could be made more robust.
+                    $itemSubTotal = $itemData['qty'] * $itemData['unit_price'];
+                    $gstAmount = $itemSubTotal * ($itemData['gst_percentage'] / 100);
+                    $total = $itemSubTotal + $gstAmount;
+
                     $purchaseOrder->items()->create([
                         'item_name' => $itemData['item_name'],
                         'qty' => $itemData['qty'],
                         'unit_price' => $itemData['unit_price'],
                         'gst_percentage' => $itemData['gst_percentage'],
-                        'gst' => $itemData['gst'],
-                        'total' => $itemData['total'],
+                        'gst' => $gstAmount,
+                        'total' => $total,
                     ]);
                 }
             });
@@ -121,6 +125,7 @@ class PurchaseOrderController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        $purchaseOrder->load('vendor', 'shipToAddress');
         $vendors = Vendor::orderBy('company_name')->get();
         $shipToAddresses = ShipToAddress::where('team_id', Auth::user()->currentTeam->id)->get();
         return view('purchase-orders.edit', compact('purchaseOrder', 'vendors', 'shipToAddresses'));
@@ -137,52 +142,77 @@ class PurchaseOrderController extends Controller
 
         $validatedData = $request->validate([
             'po_number' => 'required|string|max:255|unique:purchase_orders,po_number,' . $purchaseOrder->id,
-            'vendor_id' => 'required|exists:vendors,id',
             'po_date' => 'required|date',
-            'expected_delivery_date' => 'required|date',
+            'vendor_id' => 'required|exists:vendors,id',
             'ship_to_address_id' => 'required|exists:ship_to_addresses,id',
+            'sub_total' => 'required|numeric',
+            'tax' => 'required|numeric',
+            'shipping' => 'required|numeric',
+            'other' => 'required|numeric',
+            'grand_total' => 'required|numeric',
             'notes' => 'nullable|string',
             'terms_and_conditions' => 'nullable|string',
-            'sub_total' => 'required|numeric',
-            'total_gst' => 'required|numeric',
-            'grand_total' => 'required|numeric',
             'status' => 'required|string|in:draft,sent,approved,completed,cancelled',
             'payment_status' => 'required|string|in:unpaid,paid,partially_paid',
-            'items' => 'required|array',
+            'expected_delivery_date' => 'required|date',
+            'items' => 'required|array|min:1',
             'items.*.id' => 'nullable|integer|exists:purchase_order_items,id',
             'items.*.item_name' => 'required|string|max:255',
-            'items.*.qty' => 'required|numeric|min:0',
+            'items.*.qty' => 'required|numeric|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.gst_percentage' => 'required|numeric|min:0',
-            'items.*.gst' => 'required|numeric|min:0',
-            'items.*.total' => 'required|numeric|min:0',
         ]);
 
         DB::transaction(function () use ($purchaseOrder, $validatedData) {
             $purchaseOrder->update([
                 'po_number' => $validatedData['po_number'],
-                'vendor_id' => $validatedData['vendor_id'],
                 'po_date' => $validatedData['po_date'],
-                'expected_delivery_date' => $validatedData['expected_delivery_date'],
+                'vendor_id' => $validatedData['vendor_id'],
                 'ship_to_address_id' => $validatedData['ship_to_address_id'],
+                'sub_total' => $validatedData['sub_total'],
+                'tax' => $validatedData['tax'],
+                'shipping' => $validatedData['shipping'],
+                'other' => $validatedData['other'],
+                'grand_total' => $validatedData['grand_total'],
                 'notes' => $validatedData['notes'],
                 'terms_and_conditions' => $validatedData['terms_and_conditions'],
-                'sub_total' => $validatedData['sub_total'],
-                'total_gst' => $validatedData['total_gst'],
-                'grand_total' => $validatedData['grand_total'],
                 'status' => $validatedData['status'],
                 'payment_status' => $validatedData['payment_status'],
+                'expected_delivery_date' => $validatedData['expected_delivery_date'],
             ]);
 
-            // Delete old items and add new ones
             $existingIds = $purchaseOrder->items->pluck('id')->toArray();
-            $purchaseOrder->items()->whereNotIn('id', $existingIds)->delete();
+            $updatedIds = [];
 
             foreach ($validatedData['items'] as $itemData) {
-                $purchaseOrder->items()->updateOrCreate(
-                    ['id' => $itemData['id']],
-                    $itemData
-                );
+                $itemSubTotal = $itemData['qty'] * $itemData['unit_price'];
+                $gstAmount = $itemSubTotal * ($itemData['gst_percentage'] / 100);
+                $total = $itemSubTotal + $gstAmount;
+
+                $itemPayload = [
+                    'item_name' => $itemData['item_name'],
+                    'qty' => $itemData['qty'],
+                    'unit_price' => $itemData['unit_price'],
+                    'gst_percentage' => $itemData['gst_percentage'],
+                    'gst' => $gstAmount,
+                    'total' => $total,
+                ];
+
+                if (!empty($itemData['id'])) {
+                    $item = $purchaseOrder->items()->find($itemData['id']);
+                    if ($item) {
+                        $item->update($itemPayload);
+                        $updatedIds[] = $item->id;
+                    }
+                } else {
+                    $newItem = $purchaseOrder->items()->create($itemPayload);
+                    $updatedIds[] = $newItem->id;
+                }
+            }
+
+            $idsToDelete = array_diff($existingIds, $updatedIds);
+            if (!empty($idsToDelete)) {
+                $purchaseOrder->items()->whereIn('id', $idsToDelete)->delete();
             }
         });
 

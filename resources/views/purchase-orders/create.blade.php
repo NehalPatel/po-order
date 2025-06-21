@@ -4,6 +4,17 @@
 <div class="container mx-auto px-4 py-8">
     <h1 class="text-3xl font-bold mb-6">Create New Purchase Order</h1>
 
+    @if ($errors->any())
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong class="font-bold">Oops! Something went wrong.</strong>
+            <ul class="mt-2 list-disc list-inside">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     @if (session('error'))
         <div class="bg-red-500 text-white p-4 rounded mb-4">
             {{ session('error') }}
@@ -27,26 +38,26 @@
                 <input type="date" name="po_date" id="po_date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required value="{{ old('po_date', date('Y-m-d')) }}">
             </div>
             <div>
-                <label for="expected_delivery_date" class="block text-sm font-medium text-gray-700">Expected Delivery Date</label>
-                <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" value="{{ old('expected_delivery_date') }}">
-            </div>
-             <div>
                 <label for="status" class="block text-sm font-medium text-gray-700">Order Status</label>
                 <select name="status" id="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                    <option value="draft" selected>Draft</option>
-                    <option value="sent">Sent</option>
-                    <option value="approved">Approved</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
+                    <option value="draft" @if(old('status') == 'draft') selected @endif>Draft</option>
+                    <option value="sent" @if(old('status') == 'sent') selected @endif>Sent</option>
+                    <option value="approved" @if(old('status') == 'approved') selected @endif>Approved</option>
+                    <option value="completed" @if(old('status') == 'completed') selected @endif>Completed</option>
+                    <option value="cancelled" @if(old('status') == 'cancelled') selected @endif>Cancelled</option>
+                </select>
+            </div>
+             <div>
+                <label for="payment_status" class="block text-sm font-medium text-gray-700">Payment Status</label>
+                <select name="payment_status" id="payment_status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                    <option value="unpaid" @if(old('payment_status') == 'unpaid') selected @endif>Unpaid</option>
+                    <option value="paid" @if(old('payment_status') == 'paid') selected @endif>Paid</option>
+                    <option value="partially_paid" @if(old('payment_status') == 'partially_paid') selected @endif>Partially Paid</option>
                 </select>
             </div>
             <div>
-                <label for="payment_status" class="block text-sm font-medium text-gray-700">Payment Status</label>
-                <select name="payment_status" id="payment_status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                    <option value="unpaid" selected>Unpaid</option>
-                    <option value="paid">Paid</option>
-                    <option value="partially_paid">Partially Paid</option>
-                </select>
+                <label for="expected_delivery_date" class="block text-sm font-medium text-gray-700">Expected Delivery Date</label>
+                <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" value="{{ old('expected_delivery_date') }}">
             </div>
         </div>
 
@@ -79,7 +90,6 @@
                 <thead class="bg-gray-200">
                     <tr>
                         <th class="py-2 px-4">Item Name</th>
-                        <th class="py-2 px-4">Description</th>
                         <th class="py-2 px-4">Qty</th>
                         <th class="py-2 px-4">Unit Price</th>
                         <th class="py-2 px-4">GST (%)</th>
@@ -89,7 +99,7 @@
                     </tr>
                 </thead>
                 <tbody id="items-tbody">
-                    <!-- JS generated -->
+                    <!-- JS generated rows -->
                 </tbody>
             </table>
             <button type="button" id="add-item-btn" class="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Add Item</button>
@@ -97,6 +107,20 @@
 
         <!-- Summary and Notes -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+             <div class="bg-gray-50 p-6 rounded-lg">
+                <h3 class="text-xl font-bold mb-4">Summary</h3>
+                <div class="flex justify-between mb-2"><span>Sub Total</span><span id="sub-total">₹0.00</span></div>
+                <div class="flex justify-between mb-2"><span>Total GST</span><span id="total-gst">₹0.00</span></div>
+                 <div class="flex justify-between items-center mb-2">
+                    <label for="shipping_cost" class="text-sm font-medium text-gray-700">Shipping</label>
+                    <input type="number" step="0.01" name="shipping" id="shipping_cost" class="w-24 border-gray-300 rounded item-price text-sm text-right" value="{{ old('shipping', 0) }}">
+                </div>
+                <div class="flex justify-between items-center mb-4">
+                    <label for="other_cost" class="text-sm font-medium text-gray-700">Other</label>
+                    <input type="number" step="0.01" name="other" id="other_cost" class="w-24 border-gray-300 rounded item-price text-sm text-right" value="{{ old('other', 0) }}">
+                </div>
+                <div class="flex justify-between font-bold text-lg border-t pt-2"><span>Grand Total</span><span id="grand-total">₹0.00</span></div>
+            </div>
             <div>
                 <div class="mb-4">
                     <label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>
@@ -107,16 +131,10 @@
                     <textarea name="terms_and_conditions" id="terms_and_conditions" rows="4" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">{{ old('terms_and_conditions') }}</textarea>
                 </div>
             </div>
-            <div class="bg-gray-50 p-6 rounded-lg">
-                <h3 class="text-xl font-bold mb-4">Summary</h3>
-                <div class="flex justify-between mb-2"><span>Sub Total</span><span id="sub-total">₹0.00</span></div>
-                <div class="flex justify-between mb-2"><span>Total GST</span><span id="total-gst">₹0.00</span></div>
-                <div class="flex justify-between font-bold text-lg"><span>Grand Total</span><span id="grand-total">₹0.00</span></div>
-            </div>
         </div>
 
         <input type="hidden" name="sub_total" id="sub_total_input">
-        <input type="hidden" name="total_gst" id="total_gst_input">
+        <input type="hidden" name="tax" id="tax_input">
         <input type="hidden" name="grand_total" id="grand_total_input">
 
         <div class="mt-8 flex justify-end space-x-4">
@@ -244,6 +262,12 @@ document.addEventListener('DOMContentLoaded', function () {
     addressSearch.addEventListener('input', (e) => renderAddresses(e.target.value));
     renderAddresses();
 
+    const shippingCostInput = document.getElementById('shipping_cost');
+    const otherCostInput = document.getElementById('other_cost');
+
+    shippingCostInput.addEventListener('input', updateTotals);
+    otherCostInput.addEventListener('input', updateTotals);
+
 
     // Items Table Logic
     const addItemBtn = document.getElementById('add-item-btn');
@@ -254,10 +278,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td class="border px-2 py-1"><input type="text" name="items[${itemIndex}][item_name]" class="w-full border-gray-300 rounded text-sm" required></td>
-            <td class="border px-2 py-1"><input type="text" name="items[${itemIndex}][description]" class="w-full border-gray-300 rounded text-sm"></td>
             <td class="border px-2 py-1"><input type="number" name="items[${itemIndex}][qty]" class="w-20 border-gray-300 rounded item-qty text-sm" required min="1" value="1"></td>
             <td class="border px-2 py-1"><input type="number" step="0.01" name="items[${itemIndex}][unit_price]" class="w-24 border-gray-300 rounded item-price text-sm" required min="0" value="0"></td>
-            <td class="border px-2 py-1"><input type="number" step="0.01" name="items[${itemIndex}][gst_percent]" class="w-20 border-gray-300 rounded item-gst text-sm" min="0" value="0"></td>
+            <td class="border px-2 py-1"><input type="number" step="0.01" name="items[${itemIndex}][gst_percentage]" class="w-20 border-gray-300 rounded item-gst text-sm" min="0" value="0"></td>
             <td class="border px-2 py-1 item-gst-amount text-sm">₹0.00</td>
             <td class="border px-2 py-1 item-total text-sm">₹0.00</td>
             <td class="border px-2 py-1 text-center">
@@ -306,14 +329,16 @@ document.addEventListener('DOMContentLoaded', function () {
             totalGst += itemGst;
         });
 
-        const grandTotal = subTotal + totalGst;
+        const shipping = parseFloat(shippingCostInput.value) || 0;
+        const other = parseFloat(otherCostInput.value) || 0;
+        const grandTotal = subTotal + totalGst + shipping + other;
 
         document.getElementById('sub-total').textContent = '₹' + subTotal.toFixed(2);
         document.getElementById('total-gst').textContent = '₹' + totalGst.toFixed(2);
         document.getElementById('grand-total').textContent = '₹' + grandTotal.toFixed(2);
 
         document.getElementById('sub_total_input').value = subTotal.toFixed(2);
-        document.getElementById('total_gst_input').value = totalGst.toFixed(2);
+        document.getElementById('tax_input').value = totalGst.toFixed(2);
         document.getElementById('grand_total_input').value = grandTotal.toFixed(2);
     }
 

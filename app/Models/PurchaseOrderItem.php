@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PurchaseOrderItem extends Model
 {
@@ -20,10 +19,7 @@ class PurchaseOrderItem extends Model
         'total',
     ];
 
-    /**
-     * Get the purchase order that owns the item.
-     */
-    public function purchaseOrder(): BelongsTo
+    public function purchaseOrder()
     {
         return $this->belongsTo(PurchaseOrder::class);
     }

@@ -5,8 +5,9 @@
         <h1 class="text-3xl font-bold mb-6">Edit Purchase Order #{{ $purchaseOrder->po_number }}</h1>
 
         @if ($errors->any())
-            <div class="bg-red-500 text-white p-4 rounded mb-4">
-                <ul>
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                <strong class="font-bold">Oops! Something went wrong.</strong>
+                <ul class="mt-2 list-disc list-inside">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
@@ -17,65 +18,89 @@
         <form action="{{ route('purchase-orders.update', $purchaseOrder->id) }}" method="POST" id="po-form" class="bg-white p-6 rounded-lg shadow-md">
             @csrf
             @method('PUT')
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+            <input type="hidden" name="vendor_id" id="vendor_id_input" value="{{ $purchaseOrder->vendor_id }}" required>
+            <input type="hidden" name="ship_to_address_id" id="ship_to_address_id_input" value="{{ $purchaseOrder->ship_to_address_id }}" required>
+            <input type="hidden" name="po_number" value="{{ $purchaseOrder->po_number }}">
+
+            <!-- PO Details -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div>
-                    <label for="po_number" class="block text-sm font-medium text-gray-700">PO Number</label>
-                    <input type="text" name="po_number" id="po_number" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required value="{{ old('po_number', $purchaseOrder->po_number) }}">
-                </div>
-                <div>
-                    <label for="vendor_id" class="block text-sm font-medium text-gray-700">Vendor</label>
-                    <select name="vendor_id" id="vendor_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
-                        @foreach($vendors as $vendor)
-                            <option value="{{ $vendor->id }}" {{ old('vendor_id', $purchaseOrder->vendor_id) == $vendor->id ? 'selected' : '' }}>{{ $vendor->company_name }}</option>
-                        @endforeach
-                    </select>
+                    <label for="po_number_display" class="block text-sm font-medium text-gray-700">PO Number</label>
+                    <input type="text" id="po_number_display" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-100" value="{{ $purchaseOrder->po_number }}" disabled>
                 </div>
                 <div>
                     <label for="po_date" class="block text-sm font-medium text-gray-700">PO Date</label>
                     <input type="date" name="po_date" id="po_date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required value="{{ old('po_date', optional($purchaseOrder->po_date)->format('Y-m-d')) }}">
                 </div>
                 <div>
-                    <label for="expected_delivery_date" class="block text-sm font-medium text-gray-700">Expected Delivery Date</label>
-                    <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" value="{{ old('expected_delivery_date', optional($purchaseOrder->expected_delivery_date)->format('Y-m-d')) }}">
-                </div>
-                <div>
-                    <label for="ship_to_address_id" class="block text-sm font-medium text-gray-700">Ship To Address</label>
-                    <select name="ship_to_address_id" id="ship_to_address_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
-                        @foreach($shipToAddresses as $address)
-                            <option value="{{ $address->id }}" {{ old('ship_to_address_id', $purchaseOrder->ship_to_address_id) == $address->id ? 'selected' : '' }}>{{ $address->name }} - {{ $address->address_line_1 }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
                     <label for="status" class="block text-sm font-medium text-gray-700">Order Status</label>
                     <select name="status" id="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                        <option value="draft" @if($purchaseOrder->status == 'draft') selected @endif>Draft</option>
-                        <option value="sent" @if($purchaseOrder->status == 'sent') selected @endif>Sent</option>
-                        <option value="approved" @if($purchaseOrder->status == 'approved') selected @endif>Approved</option>
-                        <option value="completed" @if($purchaseOrder->status == 'completed') selected @endif>Completed</option>
-                        <option value="cancelled" @if($purchaseOrder->status == 'cancelled') selected @endif>Cancelled</option>
+                        <option value="draft" @if(old('status', $purchaseOrder->status) == 'draft') selected @endif>Draft</option>
+                        <option value="sent" @if(old('status', $purchaseOrder->status) == 'sent') selected @endif>Sent</option>
+                        <option value="approved" @if(old('status', $purchaseOrder->status) == 'approved') selected @endif>Approved</option>
+                        <option value="completed" @if(old('status', $purchaseOrder->status) == 'completed') selected @endif>Completed</option>
+                        <option value="cancelled" @if(old('status', $purchaseOrder->status) == 'cancelled') selected @endif>Cancelled</option>
                     </select>
                 </div>
                 <div>
                     <label for="payment_status" class="block text-sm font-medium text-gray-700">Payment Status</label>
                     <select name="payment_status" id="payment_status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                        <option value="unpaid" @if($purchaseOrder->payment_status == 'unpaid') selected @endif>Unpaid</option>
-                        <option value="paid" @if($purchaseOrder->payment_status == 'paid') selected @endif>Paid</option>
-                        <option value="partially_paid" @if($purchaseOrder->payment_status == 'partially_paid') selected @endif>Partially Paid</option>
+                        <option value="unpaid" @if(old('payment_status', $purchaseOrder->payment_status) == 'unpaid') selected @endif>Unpaid</option>
+                        <option value="paid" @if(old('payment_status', $purchaseOrder->payment_status) == 'paid') selected @endif>Paid</option>
+                        <option value="partially_paid" @if(old('payment_status', $purchaseOrder->payment_status) == 'partially_paid') selected @endif>Partially Paid</option>
                     </select>
+                </div>
+                 <div>
+                    <label for="expected_delivery_date" class="block text-sm font-medium text-gray-700">Expected Delivery Date</label>
+                    <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" value="{{ old('expected_delivery_date', optional($purchaseOrder->expected_delivery_date)->format('Y-m-d')) }}">
                 </div>
             </div>
 
+            <!-- Vendor and Ship To Sections -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="border rounded-lg p-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-gray-800">Vendor</h3>
+                        <button type="button" id="select-vendor-btn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Change Vendor</button>
+                    </div>
+                    <div id="vendor-details" class="text-sm text-gray-600 space-y-1">
+                        @if($purchaseOrder->vendor)
+                            <p><strong>{{ $purchaseOrder->vendor->company_name }}</strong></p>
+                            <p>{{ $purchaseOrder->vendor->address }}, {{ $purchaseOrder->vendor->city }}, {{ $purchaseOrder->vendor->state }} - {{ $purchaseOrder->vendor->zipcode }}</p>
+                            <p>{{ $purchaseOrder->vendor->email }} | {{ $purchaseOrder->vendor->phone }}</p>
+                        @else
+                            <p>No vendor selected.</p>
+                        @endif
+                    </div>
+                </div>
+                <div class="border rounded-lg p-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-gray-800">Ship To Address</h3>
+                        <button type="button" id="select-address-btn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Change Address</button>
+                    </div>
+                    <div id="address-details" class="text-sm text-gray-600 space-y-1">
+                        @if($purchaseOrder->shipToAddress)
+                            <p><strong>{{ $purchaseOrder->shipToAddress->name }}</strong></p>
+                            <p>{{ $purchaseOrder->shipToAddress->address_line_1 }}, {{ $purchaseOrder->shipToAddress->city }}, {{ $purchaseOrder->shipToAddress->state }} - {{ $purchaseOrder->shipToAddress->zipcode }}</p>
+                            <p>{{ $purchaseOrder->shipToAddress->contact_person ?? '' }} | {{ $purchaseOrder->shipToAddress->phone ?? '' }}</p>
+                        @else
+                            <p>No address selected.</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items Table -->
             <div class="mt-8">
                 <h2 class="text-2xl font-bold mb-4">Items</h2>
                 <table class="min-w-full bg-white">
                     <thead class="bg-gray-200">
                         <tr>
                             <th class="py-2 px-4">Item Name</th>
-                            <th class="py-2 px-4">Description</th>
                             <th class="py-2 px-4">Qty</th>
                             <th class="py-2 px-4">Unit Price</th>
                             <th class="py-2 px-4">GST (%)</th>
+                            <th class="py-2 px-4">GST Amount</th>
                             <th class="py-2 px-4">Total</th>
                             <th class="py-2 px-4"></th>
                         </tr>
@@ -83,13 +108,13 @@
                     <tbody id="items-tbody">
                         @foreach($purchaseOrder->items as $index => $item)
                         <tr>
-                            <td class="border px-4 py-2"><input type="text" name="items[{{ $index }}][item_name]" class="w-full border-gray-300 rounded" required value="{{ $item->item_name }}"></td>
-                            <td class="border px-4 py-2"><input type="text" name="items[{{ $index }}][description]" class="w-full border-gray-300 rounded" value="{{ $item->description }}"></td>
-                            <td class="border px-4 py-2"><input type="number" name="items[{{ $index }}][qty]" class="w-20 border-gray-300 rounded item-qty" required min="1" value="{{ $item->qty }}"></td>
-                            <td class="border px-4 py-2"><input type="number" step="0.01" name="items[{{ $index }}][unit_price]" class="w-24 border-gray-300 rounded item-price" required min="0" value="{{ $item->unit_price }}"></td>
-                            <td class="border px-4 py-2"><input type="number" step="0.01" name="items[{{ $index }}][gst_percent]" class="w-20 border-gray-300 rounded item-gst" min="0" value="{{ $item->gst_percent }}"></td>
-                            <td class="border px-4 py-2 item-total">₹0.00</td>
-                            <td class="border px-4 py-2 text-center">
+                            <td class="border px-2 py-1"><input type="hidden" name="items[{{ $index }}][id]" value="{{ $item->id }}"><input type="text" name="items[{{ $index }}][item_name]" class="w-full border-gray-300 rounded text-sm" required value="{{ $item->item_name }}"></td>
+                            <td class="border px-2 py-1"><input type="number" name="items[{{ $index }}][qty]" class="w-20 border-gray-300 rounded item-qty text-sm" required min="1" value="{{ $item->qty }}"></td>
+                            <td class="border px-2 py-1"><input type="number" step="0.01" name="items[{{ $index }}][unit_price]" class="w-24 border-gray-300 rounded item-price text-sm" required min="0" value="{{ $item->unit_price }}"></td>
+                            <td class="border px-2 py-1"><input type="number" step="0.01" name="items[{{ $index }}][gst_percentage]" class="w-20 border-gray-300 rounded item-gst text-sm" min="0" value="{{ $item->gst_percentage }}"></td>
+                            <td class="border px-2 py-1 item-gst-amount text-sm">₹0.00</td>
+                            <td class="border px-2 py-1 item-total text-sm">₹0.00</td>
+                            <td class="border px-2 py-1 text-center">
                                 <button type="button" class="text-red-500 hover:text-red-700 remove-item-btn p-1">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                         <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
@@ -100,10 +125,25 @@
                         @endforeach
                     </tbody>
                 </table>
-                <button type="button" id="add-item-btn" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Add Item</button>
+                <button type="button" id="add-item-btn" class="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Add Item</button>
             </div>
 
+            <!-- Summary and Notes -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                 <div class="bg-gray-50 p-6 rounded-lg">
+                    <h3 class="text-xl font-bold mb-4">Summary</h3>
+                    <div class="flex justify-between mb-2"><span>Sub Total</span><span id="sub-total">₹0.00</span></div>
+                    <div class="flex justify-between mb-2"><span>Total GST</span><span id="total-gst">₹0.00</span></div>
+                     <div class="flex justify-between items-center mb-2">
+                        <label for="shipping_cost" class="text-sm font-medium text-gray-700">Shipping</label>
+                        <input type="number" step="0.01" name="shipping" id="shipping_cost" class="w-24 border-gray-300 rounded item-price text-sm text-right" value="{{ old('shipping', $purchaseOrder->shipping) }}">
+                    </div>
+                    <div class="flex justify-between items-center mb-4">
+                        <label for="other_cost" class="text-sm font-medium text-gray-700">Other</label>
+                        <input type="number" step="0.01" name="other" id="other_cost" class="w-24 border-gray-300 rounded item-price text-sm text-right" value="{{ old('other', $purchaseOrder->other) }}">
+                    </div>
+                    <div class="flex justify-between font-bold text-lg border-t pt-2"><span>Grand Total</span><span id="grand-total">₹0.00</span></div>
+                </div>
                 <div>
                     <div class="mb-4">
                         <label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>
@@ -114,26 +154,10 @@
                         <textarea name="terms_and_conditions" id="terms_and_conditions" rows="4" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">{{ old('terms_and_conditions', $purchaseOrder->terms_and_conditions) }}</textarea>
                     </div>
                 </div>
-
-                <div class="bg-gray-50 p-6 rounded-lg">
-                    <h3 class="text-xl font-bold mb-4">Summary</h3>
-                    <div class="flex justify-between mb-2">
-                        <span>Sub Total</span>
-                        <span id="sub-total">₹0.00</span>
-                    </div>
-                    <div class="flex justify-between mb-2">
-                        <span>Total GST</span>
-                        <span id="total-gst">₹0.00</span>
-                    </div>
-                    <div class="flex justify-between font-bold text-lg">
-                        <span>Grand Total</span>
-                        <span id="grand-total">₹0.00</span>
-                    </div>
-                </div>
             </div>
 
             <input type="hidden" name="sub_total" id="sub_total_input">
-            <input type="hidden" name="total_gst" id="total_gst_input">
+            <input type="hidden" name="tax" id="tax_input">
             <input type="hidden" name="grand_total" id="grand_total_input">
 
             <div class="mt-8 flex justify-end space-x-4">
@@ -143,17 +167,145 @@
         </form>
     </div>
 
+<!-- Vendor Modal -->
+<div id="vendor-modal" class="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-full overflow-y-auto">
+        <div class="p-4 border-b">
+            <h3 class="text-lg font-bold">Select a Vendor</h3>
+        </div>
+        <div class="p-4">
+            <input type="text" id="vendor-search" placeholder="Search vendors..." class="w-full p-2 border rounded-md mb-4">
+            <div id="vendor-list" class="space-y-2">
+                <!-- JS generated -->
+            </div>
+        </div>
+        <div class="p-4 border-t flex justify-end">
+             <button type="button" id="close-vendor-modal" class="bg-gray-500 text-white px-4 py-2 rounded-md">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Address Modal -->
+<div id="address-modal" class="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-full overflow-y-auto">
+        <div class="p-4 border-b">
+            <h3 class="text-lg font-bold">Select a Shipping Address</h3>
+        </div>
+        <div class="p-4">
+            <input type="text" id="address-search" placeholder="Search addresses..." class="w-full p-2 border rounded-md mb-4">
+            <div id="address-list" class="space-y-2">
+                <!-- JS generated -->
+            </div>
+        </div>
+        <div class="p-4 border-t flex justify-end">
+             <button type="button" id="close-address-modal" class="bg-gray-500 text-white px-4 py-2 rounded-md">Close</button>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const addItemBtn = document.getElementById('add-item-btn');
+    const vendors = @json($vendors);
+    const shipToAddresses = @json($shipToAddresses);
+
+    // Modal Handling
+    const vendorModal = document.getElementById('vendor-modal');
+    const addressModal = document.getElementById('address-modal');
+    document.getElementById('select-vendor-btn').addEventListener('click', () => vendorModal.classList.remove('hidden'));
+    document.getElementById('select-address-btn').addEventListener('click', () => addressModal.classList.remove('hidden'));
+    document.getElementById('close-vendor-modal').addEventListener('click', () => vendorModal.classList.add('hidden'));
+    document.getElementById('close-address-modal').addEventListener('click', () => addressModal.classList.add('hidden'));
+
+    // Vendor Selection
+    const vendorList = document.getElementById('vendor-list');
+    const vendorDetails = document.getElementById('vendor-details');
+    const vendorIdInput = document.getElementById('vendor_id_input');
+    const vendorSearch = document.getElementById('vendor-search');
+
+    function displayVendor(vendor) {
+        if (!vendor) {
+            vendorDetails.innerHTML = '<p>No vendor selected.</p>';
+            return;
+        }
+        vendorIdInput.value = vendor.id;
+        vendorDetails.innerHTML = `
+            <p><strong>${vendor.company_name}</strong></p>
+            <p>${vendor.address}, ${vendor.city}, ${vendor.state} - ${vendor.zipcode}</p>
+            <p>${vendor.email} | ${vendor.phone}</p>
+        `;
+    }
+
+    function renderVendors(filter = '') {
+        vendorList.innerHTML = '';
+        vendors.filter(v => v.company_name.toLowerCase().includes(filter.toLowerCase())).forEach(vendor => {
+            const div = document.createElement('div');
+            div.className = 'p-2 border rounded-md cursor-pointer hover:bg-gray-100';
+            div.textContent = `${vendor.company_name} (${vendor.email})`;
+            div.addEventListener('click', () => {
+                displayVendor(vendor);
+                vendorModal.classList.add('hidden');
+            });
+            vendorList.appendChild(div);
+        });
+    }
+    vendorSearch.addEventListener('input', (e) => renderVendors(e.target.value));
+    renderVendors();
+
+
+    // Address Selection
+    const addressList = document.getElementById('address-list');
+    const addressDetails = document.getElementById('address-details');
+    const addressIdInput = document.getElementById('ship_to_address_id_input');
+    const addressSearch = document.getElementById('address-search');
+
+    function displayAddress(address) {
+        if (!address) {
+            addressDetails.innerHTML = '<p>No address selected.</p>';
+            return;
+        }
+        addressIdInput.value = address.id;
+        addressDetails.innerHTML = `
+            <p><strong>${address.name}</strong></p>
+            <p>${address.address_line_1}, ${address.city}, ${address.state} - ${address.zipcode}</p>
+            <p>${address.contact_person || ''} | ${address.phone || ''}</p>
+        `;
+    }
+
+    function renderAddresses(filter = '') {
+        addressList.innerHTML = '';
+        shipToAddresses.filter(a => a.name.toLowerCase().includes(filter.toLowerCase()) || a.address_line_1.toLowerCase().includes(filter.toLowerCase())).forEach(address => {
+            const div = document.createElement('div');
+            div.className = 'p-2 border rounded-md cursor-pointer hover:bg-gray-100';
+            div.textContent = `${address.name} - ${address.address_line_1}, ${address.city}`;
+            div.addEventListener('click', () => {
+                displayAddress(address);
+                addressModal.classList.add('hidden');
+            });
+            addressList.appendChild(div);
+        });
+    }
+    addressSearch.addEventListener('input', (e) => renderAddresses(e.target.value));
+    renderAddresses();
+
+
+    // --- The rest of the script for items and totals remains the same ---
     const itemsTbody = document.getElementById('items-tbody');
-    let itemIndex = {{ $purchaseOrder->items->count() }};
+    const shippingCostInput = document.getElementById('shipping_cost');
+    const otherCostInput = document.getElementById('other_cost');
+
+    shippingCostInput.addEventListener('input', updateTotals);
+    otherCostInput.addEventListener('input', updateTotals);
 
     function calculateRowTotal(row) {
         const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
         const price = parseFloat(row.querySelector('.item-price').value) || 0;
         const gstPercent = parseFloat(row.querySelector('.item-gst').value) || 0;
-        const total = qty * price * (1 + gstPercent / 100);
+
+        const itemSubTotal = qty * price;
+        const itemGst = itemSubTotal * (gstPercent / 100);
+        const total = itemSubTotal + itemGst;
+
+        row.querySelector('.item-gst-amount').textContent = '₹' + itemGst.toFixed(2);
         row.querySelector('.item-total').textContent = '₹' + total.toFixed(2);
     }
 
@@ -174,40 +326,44 @@ document.addEventListener('DOMContentLoaded', function () {
             calculateRowTotal(row);
         });
 
-        const grandTotal = subTotal + totalGst;
+        const shipping = parseFloat(shippingCostInput.value) || 0;
+        const other = parseFloat(otherCostInput.value) || 0;
+        const grandTotal = subTotal + totalGst + shipping + other;
 
         document.getElementById('sub-total').textContent = '₹' + subTotal.toFixed(2);
         document.getElementById('total-gst').textContent = '₹' + totalGst.toFixed(2);
         document.getElementById('grand-total').textContent = '₹' + grandTotal.toFixed(2);
 
         document.getElementById('sub_total_input').value = subTotal.toFixed(2);
-        document.getElementById('total_gst_input').value = totalGst.toFixed(2);
+        document.getElementById('tax_input').value = totalGst.toFixed(2);
         document.getElementById('grand_total_input').value = grandTotal.toFixed(2);
     }
 
-    addItemBtn.addEventListener('click', function () {
+    let itemIndex = {{ $purchaseOrder->items->count() }};
+
+    function addItemRow() {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td class="border px-4 py-2"><input type="text" name="items[${itemIndex}][item_name]" class="w-full border-gray-300 rounded" required></td>
-            <td class="border px-4 py-2"><input type="text" name="items[${itemIndex}][description]" class="w-full border-gray-300 rounded"></td>
-            <td class="border px-4 py-2"><input type="number" name="items[${itemIndex}][qty]" class="w-20 border-gray-300 rounded item-qty" required min="1" value="1"></td>
-            <td class="border px-4 py-2"><input type="number" step="0.01" name="items[${itemIndex}][unit_price]" class="w-24 border-gray-300 rounded item-price" required min="0"></td>
-            <td class="border px-4 py-2"><input type="number" step="0.01" name="items[${itemIndex}][gst_percent]" class="w-20 border-gray-300 rounded item-gst" min="0" value="0"></td>
-            <td class="border px-4 py-2 item-total">₹0.00</td>
-            <td class="border px-4 py-2 text-center">
+            <td class="border px-2 py-1"><input type="hidden" name="items[${itemIndex}][id]" value=""><input type="text" name="items[${itemIndex}][item_name]" class="w-full border-gray-300 rounded text-sm" required></td>
+            <td class="border px-2 py-1"><input type="number" name="items[${itemIndex}][qty]" class="w-20 border-gray-300 rounded item-qty text-sm" required min="1" value="1"></td>
+            <td class="border px-2 py-1"><input type="number" step="0.01" name="items[${itemIndex}][unit_price]" class="w-24 border-gray-300 rounded item-price text-sm" required min="0" value="0"></td>
+            <td class="border px-2 py-1"><input type="number" step="0.01" name="items[${itemIndex}][gst_percentage]" class="w-20 border-gray-300 rounded item-gst text-sm" min="0" value="0"></td>
+            <td class="border px-2 py-1 item-gst-amount text-sm">₹0.00</td>
+            <td class="border px-2 py-1 item-total text-sm">₹0.00</td>
+            <td class="border px-2 py-1 text-center">
                 <button type="button" class="text-red-500 hover:text-red-700 remove-item-btn p-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
-                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
                 </button>
             </td>
         `;
         itemsTbody.appendChild(tr);
         itemIndex++;
-    });
+    }
+
+    document.getElementById('add-item-btn').addEventListener('click', addItemRow);
 
     itemsTbody.addEventListener('click', function (e) {
-        if (e.target.classList.contains('remove-item-btn')) {
+        if (e.target.closest('.remove-item-btn')) {
             e.target.closest('tr').remove();
             updateTotals();
         }
@@ -219,8 +375,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Initial calculation
-    updateTotals();
+    updateTotals(); // Initial calculation
+    displayVendor(@json($purchaseOrder->vendor));
+    displayAddress(@json($purchaseOrder->shipToAddress));
 });
 </script>
 @endsection

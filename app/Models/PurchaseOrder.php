@@ -62,6 +62,6 @@ class PurchaseOrder extends Model
      */
     public function shipToAddress(): BelongsTo
     {
-        return $this->belongsTo(ShipToAddress::class);
+        return $this->belongsTo(ShipToAddress::class, 'ship_to_address_id');
     }
 }

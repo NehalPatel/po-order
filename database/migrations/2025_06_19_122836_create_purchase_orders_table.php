@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('po_number');
             $table->date('po_date');
             $table->foreignId('vendor_id')->constrained()->onDelete('restrict');
+            $table->foreignId('ship_to_address_id')->constrained()->onDelete('restrict');
             $table->decimal('sub_total', 15, 2);
             $table->decimal('tax', 15, 2);
             $table->decimal('shipping', 15, 2);
