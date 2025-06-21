@@ -22,13 +22,6 @@ class UsersSeeder extends Seeder
             'email_verified_at' => now(),
         ]);
 
-        // Create personal team for admin
-        $admin->ownedTeams()->save(Team::forceCreate([
-            'user_id' => $admin->id,
-            'name' => explode(' ', $admin->name, 2)[0]."'s Team",
-            'personal_team' => true,
-        ]));
-
         // Create second user - Regular User
         $user = User::create([
             'name' => 'Nehal Patel',
@@ -36,13 +29,6 @@ class UsersSeeder extends Seeder
             'password' => Hash::make('password'),
             'email_verified_at' => now(),
         ]);
-
-        // Create personal team for regular user
-        $user->ownedTeams()->save(Team::forceCreate([
-            'user_id' => $user->id,
-            'name' => explode(' ', $user->name, 2)[0]."'s Team",
-            'personal_team' => true,
-        ]));
 
         // Create SDJIC-Vesu team
         $sdjicVesuTeam = Team::forceCreate([
@@ -57,6 +43,9 @@ class UsersSeeder extends Seeder
             $user->id => ['role' => 'editor'],
         ]);
 
+        // Set current team for users
+        $admin->switchTeam($sdjicVesuTeam);
+
         // Create SDJIC-Palsana team
         $sdjicPalsanaTeam = Team::forceCreate([
             'user_id' => $user->id,
@@ -70,13 +59,13 @@ class UsersSeeder extends Seeder
             $user->id => ['role' => 'admin'],
         ]);
 
+        $user->switchTeam($sdjicPalsanaTeam);
+
         $this->command->info('Users and Teams seeded successfully!');
         $this->command->info('Admin: admin@admin.com / password');
         $this->command->info('User: nehal.sdjic@admin.com / password');
         $this->command->info('Teams created:');
-        $this->command->info('- Admin\'s Team (Personal)');
-        $this->command->info('- Nehal\'s Team (Personal)');
-        $this->command->info('- SDJIC-Vesu (Shared)');
-        $this->command->info('- SDJIC-Palsana (Shared)');
+        $this->command->info('- SDJIC-Vesu');
+        $this->command->info('- SDJIC-Palsana');
     }
 }

@@ -12,7 +12,7 @@ class ShipToAddressController extends Controller
      */
     public function index()
     {
-        $shipToAddresses = ShipToAddress::paginate(10);
+        $shipToAddresses = ShipToAddress::where('team_id', auth()->user()->currentTeam->id)->paginate(10);
         return view('ship-to-addresses.index', compact('shipToAddresses'));
     }
 
@@ -60,6 +60,9 @@ class ShipToAddressController extends Controller
      */
     public function edit(ShipToAddress $shipToAddress)
     {
+        if ($shipToAddress->team_id !== auth()->user()->currentTeam->id) {
+            abort(403);
+        }
         return view('ship-to-addresses.edit', ['address' => $shipToAddress]);
     }
 
@@ -68,6 +71,10 @@ class ShipToAddressController extends Controller
      */
     public function update(Request $request, ShipToAddress $shipToAddress)
     {
+        if ($shipToAddress->team_id !== auth()->user()->currentTeam->id) {
+            abort(403);
+        }
+
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'address' => 'required|string|max:255',
@@ -88,6 +95,10 @@ class ShipToAddressController extends Controller
      */
     public function destroy(ShipToAddress $shipToAddress)
     {
+        if ($shipToAddress->team_id !== auth()->user()->currentTeam->id) {
+            abort(403);
+        }
+
         try {
             $shipToAddress->delete();
             return redirect()->route('ship-to-addresses.index')->with('success', 'Address deleted successfully.');

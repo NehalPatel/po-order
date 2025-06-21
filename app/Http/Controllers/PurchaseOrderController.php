@@ -16,7 +16,8 @@ class PurchaseOrderController extends Controller
      */
     public function index()
     {
-        $purchaseOrders = PurchaseOrder::with(['vendor', 'team'])
+        $purchaseOrders = PurchaseOrder::where('team_id', Auth::user()->currentTeam->id)
+            ->with('vendor')
             ->latest()
             ->paginate(10);
 
@@ -105,12 +106,10 @@ class PurchaseOrderController extends Controller
      */
     public function show(PurchaseOrder $purchaseOrder)
     {
-        $purchaseOrder->load(['team.settings', 'team.shipToAddresses', 'vendor', 'items']);
-
-        $setting = $purchaseOrder->team->settings->first();
-        $shipTo = $purchaseOrder->team->shipToAddresses->first();
-
-        return view('purchase-orders.show', compact('purchaseOrder', 'setting', 'shipTo'));
+        if ($purchaseOrder->team_id !== Auth::user()->currentTeam->id) {
+            abort(403, 'Unauthorized action.');
+        }
+        return view('purchase-orders.show', compact('purchaseOrder'));
     }
 
     /**
@@ -118,9 +117,12 @@ class PurchaseOrderController extends Controller
      */
     public function edit(PurchaseOrder $purchaseOrder)
     {
-        $vendors = Vendor::all();
+        if ($purchaseOrder->team_id !== Auth::user()->currentTeam->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $vendors = Vendor::orderBy('company_name')->get();
         $shipToAddresses = ShipToAddress::where('team_id', Auth::user()->currentTeam->id)->get();
-        $purchaseOrder->load('items', 'vendor', 'shipToAddress');
         return view('purchase-orders.edit', compact('purchaseOrder', 'vendors', 'shipToAddresses'));
     }
 
@@ -129,6 +131,10 @@ class PurchaseOrderController extends Controller
      */
     public function update(Request $request, PurchaseOrder $purchaseOrder)
     {
+        if ($purchaseOrder->team_id !== Auth::user()->currentTeam->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $validatedData = $request->validate([
             'po_number' => 'required|string|max:255|unique:purchase_orders,po_number,' . $purchaseOrder->id,
             'vendor_id' => 'required|exists:vendors,id',
@@ -188,6 +194,11 @@ class PurchaseOrderController extends Controller
      */
     public function destroy(PurchaseOrder $purchaseOrder)
     {
-        //
+        if ($purchaseOrder->team_id !== Auth::user()->currentTeam->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $purchaseOrder->delete();
+        return redirect()->route('purchase-orders.index')->with('success', 'Purchase Order deleted successfully.');
     }
 }
