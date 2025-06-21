@@ -27,6 +27,18 @@
             <label for="password_confirmation" class="block font-medium">Confirm Password</label>
             <input type="password" id="password_confirmation" name="password_confirmation" class="form-input w-full mt-1" required />
         </div>
+        <div>
+            <label class="block font-medium mb-2">Roles</label>
+            <div class="grid grid-cols-2 gap-2">
+                @foreach($roles as $role)
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" name="roles[]" value="{{ $role->id }}" class="form-checkbox" {{ in_array($role->id, old('roles', [])) ? 'checked' : '' }}>
+                        <span class="ml-2">{{ $role->name }}</span>
+                    </label>
+                @endforeach
+            </div>
+            @error('roles') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+        </div>
         <div class="flex justify-end space-x-2">
             <a href="{{ route('users.index') }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg">Cancel</a>
             <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg">Create User</button>

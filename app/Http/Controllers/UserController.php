@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -15,7 +16,8 @@ class UserController extends Controller
 
     public function create()
     {
-        return view('users.create');
+        $roles = Role::all();
+        return view('users.create', compact('roles'));
     }
 
     public function store(Request $request)
@@ -24,12 +26,20 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
+            'roles' => 'array',
+            'roles.*' => 'exists:roles,id',
         ]);
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
         ]);
+        if (!empty($validated['roles'])) {
+            $roleNames = Role::whereIn('id', $validated['roles'])->pluck('name')->toArray();
+            $user->syncRoles($roleNames);
+        } else {
+            $user->syncRoles([]);
+        }
         return redirect()->route('users.index')->with('success', 'User created successfully.');
     }
 
@@ -40,7 +50,9 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        return view('users.edit', compact('user'));
+        $roles = Role::all();
+        $userRoles = $user->roles->pluck('id')->toArray();
+        return view('users.edit', compact('user', 'roles', 'userRoles'));
     }
 
     public function update(Request $request, User $user)
@@ -49,6 +61,8 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8|confirmed',
+            'roles' => 'array',
+            'roles.*' => 'exists:roles,id',
         ]);
         $user->name = $validated['name'];
         $user->email = $validated['email'];
@@ -56,6 +70,12 @@ class UserController extends Controller
             $user->password = bcrypt($validated['password']);
         }
         $user->save();
+        if (!empty($validated['roles'])) {
+            $roleNames = Role::whereIn('id', $validated['roles'])->pluck('name')->toArray();
+            $user->syncRoles($roleNames);
+        } else {
+            $user->syncRoles([]);
+        }
         return redirect()->route('users.index')->with('success', 'User updated successfully.');
     }
 

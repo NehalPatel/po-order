@@ -31,6 +31,7 @@
                     <a href="{{ route('dashboard') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('dashboard') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                         Dashboard
                     </a>
+                    <div class="text-xs text-gray-400 uppercase mt-6 mb-2 tracking-wider">PO Management</div>
                     <a href="{{ route('purchase-orders.index') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('purchase-orders.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                         Purchase Orders
                     </a>
@@ -43,13 +44,25 @@
                     <a href="{{ route('settings.index') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('settings.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                         Settings
                     </a>
-                    <a href="{{ route('profile.show') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('profile.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
-                        Profile
-                    </a>
+                    <div class="text-xs text-gray-400 uppercase mt-6 mb-2 tracking-wider">User Management</div>
                     <a href="{{ route('users.index') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('users.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                         Users
                     </a>
+                    <a href="{{ route('roles.index') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('roles.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                        Roles
+                    </a>
+                    <a href="{{ route('permissions.index') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('permissions.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                        Permissions
+                    </a>
+                    <a href="{{ route('profile.show') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('profile.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                        Profile
+                    </a>
                     @if (Laravel\Jetstream\Jetstream::hasTeamFeatures())
+                        @can('teams.create')
+                        <a href="{{ route('teams.create') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('teams.create') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                            Create Team
+                        </a>
+                        @endcan
                         <a href="{{ route('teams.show', Auth::user()->currentTeam->id) }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('teams.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                             Team Settings
                         </a>

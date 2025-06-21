@@ -17,7 +17,7 @@ class UsersSeeder extends Seeder
         // Create first user - Admin
         $admin = User::create([
             'name' => 'Admin User',
-            'email' => 'admin@admin.com',
+            'email' => 'admin@sdjic.org',
             'password' => Hash::make('password'),
             'email_verified_at' => now(),
         ]);
@@ -25,7 +25,7 @@ class UsersSeeder extends Seeder
         // Create second user - Regular User
         $user = User::create([
             'name' => 'Nehal Patel',
-            'email' => 'nehal.sdjic@admin.com',
+            'email' => 'nehal.sdjic@sdjic.org',
             'password' => Hash::make('password'),
             'email_verified_at' => now(),
         ]);
