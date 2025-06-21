@@ -5,6 +5,7 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\ShipToAddressController;
+use App\Http\Controllers\UserController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -23,4 +24,5 @@ Route::middleware([
     Route::resource('vendors', VendorController::class);
     Route::resource('purchase-orders', PurchaseOrderController::class);
     Route::resource('ship-to-addresses', ShipToAddressController::class);
+    Route::resource('users', UserController::class);
 });

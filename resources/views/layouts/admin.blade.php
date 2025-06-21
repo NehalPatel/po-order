@@ -46,6 +46,9 @@
                     <a href="{{ route('profile.show') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('profile.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                         Profile
                     </a>
+                    <a href="{{ route('users.index') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('users.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                        Users
+                    </a>
                     @if (Laravel\Jetstream\Jetstream::hasTeamFeatures())
                         <a href="{{ route('teams.show', Auth::user()->currentTeam->id) }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('teams.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                             Team Settings
