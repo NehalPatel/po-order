@@ -13,6 +13,19 @@ return new class extends Migration
     {
         Schema::create('purchase_orders', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('team_id')->constrained()->onDelete('cascade');
+            $table->string('po_number');
+            $table->date('po_date');
+            $table->foreignId('vendor_id')->constrained()->onDelete('restrict');
+            $table->decimal('sub_total', 15, 2);
+            $table->decimal('tax', 15, 2);
+            $table->decimal('shipping', 15, 2);
+            $table->decimal('other', 15, 2)->default(0);
+            $table->decimal('grand_total', 15, 2);
+            $table->text('comments')->nullable();
+            $table->string('status')->default('draft'); // e.g., draft, sent, approved, completed
+            $table->string('payment_status')->default('unpaid'); // e.g., unpaid, paid, partially_paid
+            $table->date('expected_delivery_date')->nullable();
             $table->timestamps();
         });
     }

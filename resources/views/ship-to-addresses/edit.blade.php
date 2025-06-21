@@ -3,8 +3,8 @@
 @section('content')
 <div class="space-y-6">
     <div>
-      <h1 class="text-2xl font-bold text-gray-900">Edit Setting</h1>
-      <p class="text-gray-600 mt-1">Update the details for {{ $setting->company_name }}.</p>
+      <h1 class="text-2xl font-bold text-gray-900">Edit Shipping Address</h1>
+      <p class="text-gray-600 mt-1">Update the details for {{ $address->name }}.</p>
     </div>
 
     @if ($errors->any())
@@ -17,17 +17,17 @@
         </div>
     @endif
 
-    <form action="{{ route('settings.update', $setting) }}" method="POST">
+    <form action="{{ route('ship-to-addresses.update', $address) }}" method="POST">
         @csrf
         @method('PUT')
         <div class="bg-white rounded-lg shadow-sm p-6">
             <div class="space-y-6">
-                @include('settings.partials.form-fields', ['setting' => $setting])
+                @include('ship-to-addresses.partials.form-fields', ['address' => $address])
             </div>
 
             <div class="mt-6 flex justify-end">
-                <a href="{{ route('settings.index') }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg mr-2">Cancel</a>
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg">Update Setting</button>
+                <a href="{{ route('ship-to-addresses.index') }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg mr-2">Cancel</a>
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg">Update Address</button>
             </div>
         </div>
     </form>

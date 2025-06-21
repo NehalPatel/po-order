@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Order</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            width: 850px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+        }
+
+        h1 {
+            text-align: right;
+            color: #2a4d8f;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .section-title {
+            background: #2a4d8f;
+            color: white;
+            padding: 5px;
+            font-weight: bold;
+        }
+
+        .table,
+        .info {
+            width: 100%;
+            margin-top: 10px;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            border: 1px solid #999;
+            padding: 6px;
+            text-align: left;
+        }
+
+        .table th {
+            background-color: #2a4d8f;
+            color: white;
+        }
+
+        .totals td {
+            text-align: right;
+            padding: 6px;
+        }
+
+        .notes {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #eee;
+        }
+
+        .footer {
+            font-size: 0.85em;
+            text-align: center;
+            margin-top: 30px;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div>
+                <strong>[Company Name]</strong><br>
+                [Street Address]<br>
+                [City, ST ZIP]<br>
+                Phone: (000) 000-0000<br>
+                Fax: (000) 000-0000<br>
+                Website:
+            </div>
+            <div>
+                <h1>PURCHASE ORDER</h1>
+                <table class="info">
+                    <tr>
+                        <td><strong>DATE</strong></td>
+                        <td>9/17/2015</td>
+                    </tr>
+                    <tr>
+                        <td><strong>PO #</strong></td>
+                        <td>[123456]</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="row">
+            <div style="width: 48%;">
+                <div class="section-title">VENDOR</div>
+                [Company Name]<br>
+                [Contact or Department]<br>
+                [Street Address]<br>
+                [City, ST ZIP]<br>
+                Phone: (000) 000-0000<br>
+                Fax: (000) 000-0000
+            </div>
+            <div style="width: 48%;">
+                <div class="section-title">SHIP TO</div>
+                [Name]<br>
+                [Company Name]<br>
+                [Street Address]<br>
+                [City, ST ZIP]<br>
+                [Phone]
+            </div>
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ITEM #</th>
+                    <th>DESCRIPTION</th>
+                    <th>QTY</th>
+                    <th>UNIT PRICE</th>
+                    <th>TOTAL</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>[23423423]</td>
+                    <td>Product XYZ</td>
+                    <td>15</td>
+                    <td>150.00</td>
+                    <td>2,250.00</td>
+                </tr>
+                <tr>
+                    <td>[45645646]</td>
+                    <td>Product ABC</td>
+                    <td>1</td>
+                    <td>75.00</td>
+                    <td>75.00</td>
+                </tr>
+                <!-- Add empty rows if needed -->
+                <tr>
+                    <td colspan="5">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td colspan="5">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td colspan="5">&nbsp;</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table totals" style="margin-top: 10px;">
+            <tr>
+                <td colspan="4">SUBTOTAL</td>
+                <td>2,325.00</td>
+            </tr>
+            <tr>
+                <td colspan="4">TAX</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td colspan="4">SHIPPING</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td colspan="4">OTHER</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td colspan="4"><strong>TOTAL</strong></td>
+                <td><strong>$2,325.00</strong></td>
+            </tr>
+        </table>
+
+        <div class="notes">
+            <strong>Comments or Special Instructions</strong><br>
+            &nbsp;
+        </div>
+
+        <div class="footer">
+            If you have any questions about this purchase order, please contact<br>
+            [Name, Phone #, E-mail]
+        </div>
+    </div>
+</body>
+
+</html>

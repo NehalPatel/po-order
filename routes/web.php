@@ -2,6 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\VendorController;
+use App\Http\Controllers\PurchaseOrderController;
+use App\Http\Controllers\ShipToAddressController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -17,4 +20,7 @@ Route::middleware([
     })->name('dashboard');
 
     Route::resource('settings', SettingsController::class);
+    Route::resource('vendors', VendorController::class);
+    Route::resource('purchase-orders', PurchaseOrderController::class);
+    Route::resource('ship-to-addresses', ShipToAddressController::class);
 });

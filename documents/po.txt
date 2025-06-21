@@ -8,6 +8,7 @@ Settings
 
 Purchase Order
 - id
+- team_id
 - po_number
 - po_date
 - vendor_id
@@ -43,7 +44,8 @@ Vendors
 - referenced_by
 
 ShipTo
-- id 
+- id
+- team_id
 - name
 - company_name
 - address
