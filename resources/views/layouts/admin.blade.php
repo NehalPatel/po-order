@@ -38,6 +38,12 @@
                     <a href="{{ route('vendors.index') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('vendors.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                         Vendors
                     </a>
+                    <a href="{{ route('categories.index') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('categories.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                        Categories
+                    </a>
+                    <a href="{{ route('subcategories.index') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('subcategories.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                        Subcategories
+                    </a>
                     <a href="{{ route('settings.index') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('settings.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                         Settings
                     </a>

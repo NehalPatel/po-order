@@ -27,4 +27,6 @@ Route::middleware([
     Route::resource('users', UserController::class);
     Route::resource('roles', RoleController::class);
     Route::resource('permissions', PermissionController::class);
+    Route::resource('categories', \App\Http\Controllers\CategoryController::class);
+    Route::resource('subcategories', \App\Http\Controllers\SubcategoryController::class);
 });

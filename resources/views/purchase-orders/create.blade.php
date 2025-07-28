@@ -24,7 +24,7 @@
     <form action="{{ route('purchase-orders.store') }}" method="POST" id="po-form" class="bg-white p-6 rounded-lg shadow-md">
         @csrf
         <input type="hidden" name="po_number" id="po_number_input" value="{{ old('po_number', $poNumber ?? '') }}">
-        <input type="hidden" name="vendor_id" id="vendor_id_input" required>
+        <input type="hidden" name="vendor_id" id="vendor_id_input" value="{{ old('vendor_id') }}">
 
         <!-- PO Details -->
         <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
@@ -70,6 +70,8 @@
             <table class="min-w-full bg-white">
                 <thead class="bg-gray-200">
                     <tr>
+                        <th class="py-2 px-4">Category</th>
+                        <th class="py-2 px-4">Subcategory</th>
                         <th class="py-2 px-4">Item Name</th>
                         <th class="py-2 px-4">Qty</th>
                         <th class="py-2 px-4">Unit Price</th>
@@ -164,6 +166,8 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const vendors = @json($vendors);
+    const categories = @json($categories);
+    const oldItems = @json(old('items', []));
 
     // Modal Handling
     const vendorModal = document.getElementById('vendor-modal');
@@ -176,6 +180,19 @@ document.addEventListener('DOMContentLoaded', function () {
     const vendorDetails = document.getElementById('vendor-details');
     const vendorIdInput = document.getElementById('vendor_id_input');
     const vendorSearch = document.getElementById('vendor-search');
+
+    // Restore vendor selection if there was an error
+    const oldVendorId = vendorIdInput.value;
+    if (oldVendorId) {
+        const vendor = vendors.find(v => v.id == oldVendorId);
+        if (vendor) {
+            vendorDetails.innerHTML = `
+                <p><strong>${vendor.company_name}</strong></p>
+                <p>${vendor.address}, ${vendor.city}, ${vendor.state} - ${vendor.zipcode}</p>
+                <p>${vendor.email} | ${vendor.phone}</p>
+            `;
+        }
+    }
 
     function renderVendors(filter = '') {
         vendorList.innerHTML = '';
@@ -205,19 +222,53 @@ document.addEventListener('DOMContentLoaded', function () {
     shippingCostInput.addEventListener('input', updateTotals);
     otherCostInput.addEventListener('input', updateTotals);
 
-
     // Items Table Logic
     const addItemBtn = document.getElementById('add-item-btn');
     const itemsTbody = document.getElementById('items-tbody');
     let itemIndex = 0;
 
-    function addItemRow() {
+    function populateCategories(selectElement) {
+        selectElement.innerHTML = '<option value="">Select Category</option>';
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.name;
+            selectElement.appendChild(option);
+        });
+    }
+
+    function populateSubcategories(selectElement, categoryId) {
+        selectElement.innerHTML = '<option value="">Select Subcategory</option>';
+        if (categoryId) {
+            const category = categories.find(cat => cat.id == categoryId);
+            if (category && category.subcategories) {
+                category.subcategories.forEach(subcategory => {
+                    const option = document.createElement('option');
+                    option.value = subcategory.id;
+                    option.textContent = subcategory.name;
+                    selectElement.appendChild(option);
+                });
+            }
+        }
+    }
+
+    function addItemRow(itemData = null) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td class="border px-2 py-1"><input type="text" name="items[${itemIndex}][item_name]" class="w-full border-gray-300 rounded text-sm" required></td>
-            <td class="border px-2 py-1"><input type="number" name="items[${itemIndex}][qty]" class="w-20 border-gray-300 rounded item-qty text-sm" required min="1" value="1"></td>
-            <td class="border px-2 py-1"><input type="number" step="0.01" name="items[${itemIndex}][unit_price]" class="w-24 border-gray-300 rounded item-price text-sm" required min="0" value="0"></td>
-            <td class="border px-2 py-1"><input type="number" step="0.01" name="items[${itemIndex}][gst_percentage]" class="w-20 border-gray-300 rounded item-gst text-sm" min="0" value="0"></td>
+            <td class="border px-2 py-1">
+                <select name="items[${itemIndex}][category_id]" class="w-full border-gray-300 rounded text-sm category-select">
+                    <option value="">Select Category</option>
+                </select>
+            </td>
+            <td class="border px-2 py-1">
+                <select name="items[${itemIndex}][subcategory_id]" class="w-full border-gray-300 rounded text-sm subcategory-select">
+                    <option value="">Select Subcategory</option>
+                </select>
+            </td>
+            <td class="border px-2 py-1"><input type="text" name="items[${itemIndex}][item_name]" class="w-full border-gray-300 rounded text-sm" required value="${itemData ? itemData.item_name || '' : ''}"></td>
+            <td class="border px-2 py-1"><input type="number" name="items[${itemIndex}][qty]" class="w-20 border-gray-300 rounded item-qty text-sm" required min="1" value="${itemData ? itemData.qty || '1' : '1'}"></td>
+            <td class="border px-2 py-1"><input type="number" step="0.01" name="items[${itemIndex}][unit_price]" class="w-24 border-gray-300 rounded item-price text-sm" required min="0" value="${itemData ? itemData.unit_price || '0' : '0'}"></td>
+            <td class="border px-2 py-1"><input type="number" step="0.01" name="items[${itemIndex}][gst_percentage]" class="w-20 border-gray-300 rounded item-gst text-sm" min="0" value="${itemData ? itemData.gst_percentage || '0' : '0'}"></td>
             <td class="border px-2 py-1 item-gst-amount text-sm">₹0.00</td>
             <td class="border px-2 py-1 item-total text-sm">₹0.00</td>
             <td class="border px-2 py-1 text-center">
@@ -226,12 +277,34 @@ document.addEventListener('DOMContentLoaded', function () {
                 </button>
             </td>
         `;
+        
+        // Populate categories for this row
+        const categorySelect = tr.querySelector('.category-select');
+        const subcategorySelect = tr.querySelector('.subcategory-select');
+        populateCategories(categorySelect);
+        
+        // Set old values if restoring from error
+        if (itemData) {
+            if (itemData.category_id) {
+                categorySelect.value = itemData.category_id;
+                populateSubcategories(subcategorySelect, itemData.category_id);
+                if (itemData.subcategory_id) {
+                    subcategorySelect.value = itemData.subcategory_id;
+                }
+            }
+        }
+        
+        // Handle category change
+        categorySelect.addEventListener('change', function() {
+            populateSubcategories(subcategorySelect, this.value);
+        });
+        
         itemsTbody.appendChild(tr);
         itemIndex++;
         updateTotals();
     }
 
-    addItemBtn.addEventListener('click', addItemRow);
+    addItemBtn.addEventListener('click', () => addItemRow());
 
     itemsTbody.addEventListener('click', (e) => {
         if (e.target.closest('.remove-item-btn')) {
@@ -243,6 +316,37 @@ document.addEventListener('DOMContentLoaded', function () {
     itemsTbody.addEventListener('input', (e) => {
         if (e.target.classList.contains('item-qty') || e.target.classList.contains('item-price') || e.target.classList.contains('item-gst')) {
             updateTotals();
+        }
+    });
+
+    // Form validation
+    document.getElementById('po-form').addEventListener('submit', function(e) {
+        if (!vendorIdInput.value) {
+            e.preventDefault();
+            alert('Please select a vendor before submitting.');
+            return false;
+        }
+        
+        const itemRows = itemsTbody.querySelectorAll('tr');
+        if (itemRows.length === 0) {
+            e.preventDefault();
+            alert('Please add at least one item before submitting.');
+            return false;
+        }
+        
+        // Check if all items have names
+        let hasValidItems = false;
+        itemRows.forEach(row => {
+            const itemName = row.querySelector('input[name*="[item_name]"]').value.trim();
+            if (itemName) {
+                hasValidItems = true;
+            }
+        });
+        
+        if (!hasValidItems) {
+            e.preventDefault();
+            alert('Please enter item names for all items.');
+            return false;
         }
     });
 
@@ -279,7 +383,14 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('grand_total_input').value = grandTotal.toFixed(2);
     }
 
-    addItemRow(); // Add initial row
+    // Restore items from old input if there was an error
+    if (oldItems && oldItems.length > 0) {
+        oldItems.forEach(item => {
+            addItemRow(item);
+        });
+    } else {
+        addItemRow(); // Add initial row
+    }
 });
 </script>
 @endsection

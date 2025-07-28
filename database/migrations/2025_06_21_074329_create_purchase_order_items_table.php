@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('purchase_order_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('purchase_order_id')->constrained()->onDelete('cascade');
+            $table->foreignId('category_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('subcategory_id')->nullable()->constrained()->onDelete('set null');
             $table->string('item_name');
             $table->decimal('qty', 15, 2);
             $table->decimal('unit_price', 15, 2);

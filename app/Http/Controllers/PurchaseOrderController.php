@@ -30,7 +30,8 @@ class PurchaseOrderController extends Controller
     {
         $vendors = Vendor::orderBy('company_name')->get();
         $poNumber = $this->generatePoNumber();
-        return view('purchase-orders.create', compact('vendors', 'poNumber'));
+        $categories = \App\Models\Category::with('subcategories')->orderBy('name')->get();
+        return view('purchase-orders.create', compact('vendors', 'poNumber', 'categories'));
     }
 
     /**
@@ -52,6 +53,8 @@ class PurchaseOrderController extends Controller
             'status' => 'required|string|in:draft,sent,approved,completed,cancelled',
             'expected_delivery_date' => 'nullable|date|after_or_equal:po_date',
             'items' => 'required|array|min:1',
+            'items.*.category_id' => 'nullable|exists:categories,id',
+            'items.*.subcategory_id' => 'nullable|exists:subcategories,id',
             'items.*.item_name' => 'required|string|max:255',
             'items.*.qty' => 'required|numeric|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
@@ -82,6 +85,8 @@ class PurchaseOrderController extends Controller
                     $total = $itemSubTotal + $gstAmount;
 
                     $purchaseOrder->items()->create([
+                        'category_id' => $itemData['category_id'] ?? null,
+                        'subcategory_id' => $itemData['subcategory_id'] ?? null,
                         'item_name' => $itemData['item_name'],
                         'qty' => $itemData['qty'],
                         'unit_price' => $itemData['unit_price'],
@@ -119,9 +124,10 @@ class PurchaseOrderController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $purchaseOrder->load('vendor');
+        $purchaseOrder->load('vendor', 'items.category', 'items.subcategory');
         $vendors = Vendor::orderBy('company_name')->get();
-        return view('purchase-orders.edit', compact('purchaseOrder', 'vendors'));
+        $categories = \App\Models\Category::with('subcategories')->orderBy('name')->get();
+        return view('purchase-orders.edit', compact('purchaseOrder', 'vendors', 'categories'));
     }
 
     /**
@@ -148,6 +154,8 @@ class PurchaseOrderController extends Controller
             'expected_delivery_date' => 'required|date|after_or_equal:po_date',
             'items' => 'required|array|min:1',
             'items.*.id' => 'nullable|integer|exists:purchase_order_items,id',
+            'items.*.category_id' => 'nullable|exists:categories,id',
+            'items.*.subcategory_id' => 'nullable|exists:subcategories,id',
             'items.*.item_name' => 'required|string|max:255',
             'items.*.qty' => 'required|numeric|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
@@ -179,6 +187,8 @@ class PurchaseOrderController extends Controller
                 $total = $itemSubTotal + $gstAmount;
 
                 $itemPayload = [
+                    'category_id' => $itemData['category_id'] ?? null,
+                    'subcategory_id' => $itemData['subcategory_id'] ?? null,
                     'item_name' => $itemData['item_name'],
                     'qty' => $itemData['qty'],
                     'unit_price' => $itemData['unit_price'],
@@ -229,7 +239,7 @@ class PurchaseOrderController extends Controller
         $now = now();
         $year = $now->month >= 4 ? $now->year : $now->year - 1;
         $nextYear = $year + 1;
-        $ay = sprintf('AY-%d-%02d', $year, $nextYear % 100);
+        $ay = sprintf('PO-%d-%02d', $year, $nextYear % 100);
         $start = now()->setDate($year, 4, 1)->startOfDay();
         $end = now()->setDate($nextYear, 3, 31)->endOfDay();
         $lastPo = \App\Models\PurchaseOrder::whereBetween('po_date', [$start, $end])
