@@ -16,7 +16,6 @@ class PurchaseOrder extends Model
         'po_number',
         'po_date',
         'vendor_id',
-        'ship_to_address_id',
         'sub_total',
         'tax',
         'shipping',
@@ -25,7 +24,6 @@ class PurchaseOrder extends Model
         'notes',
         'terms_and_conditions',
         'status',
-        'payment_status',
         'expected_delivery_date',
     ];
 
@@ -56,13 +54,5 @@ class PurchaseOrder extends Model
     public function items(): HasMany
     {
         return $this->hasMany(PurchaseOrderItem::class);
-    }
-
-    /**
-     * Get the ship to address for the purchase order.
-     */
-    public function shipToAddress(): BelongsTo
-    {
-        return $this->belongsTo(ShipToAddress::class, 'ship_to_address_id');
     }
 }

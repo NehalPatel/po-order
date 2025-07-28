@@ -19,12 +19,11 @@
             @csrf
             @method('PUT')
             <input type="hidden" name="vendor_id" id="vendor_id_input" value="{{ $purchaseOrder->vendor_id }}" required>
-            <input type="hidden" name="ship_to_address_id" id="ship_to_address_id_input" value="{{ $purchaseOrder->ship_to_address_id }}" required>
             <input type="hidden" name="po_number" value="{{ $purchaseOrder->po_number }}">
 
             <!-- PO Details -->
             <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
-                <div>
+                <div class="md:col-span-3">
                     <label for="po_number_display" class="block text-sm font-medium text-gray-700">PO Number</label>
                     <input type="text" id="po_number_display" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-100" value="{{ $purchaseOrder->po_number }}" disabled>
                 </div>
@@ -46,21 +45,13 @@
                         <option value="cancelled" @if(old('status', $purchaseOrder->status) == 'cancelled') selected @endif>Cancelled</option>
                     </select>
                 </div>
-                <div>
-                    <label for="payment_status" class="block text-sm font-medium text-gray-700">Payment Status</label>
-                    <select name="payment_status" id="payment_status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                        <option value="unpaid" @if(old('payment_status', $purchaseOrder->payment_status) == 'unpaid') selected @endif>Unpaid</option>
-                        <option value="paid" @if(old('payment_status', $purchaseOrder->payment_status) == 'paid') selected @endif>Paid</option>
-                        <option value="partially_paid" @if(old('payment_status', $purchaseOrder->payment_status) == 'partially_paid') selected @endif>Partially Paid</option>
-                    </select>
-                </div>
             </div>
 
-            <!-- Vendor and Ship To Sections -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- To (Vendor) Section Full Row -->   
+            <div class="mb-8">
                 <div class="border rounded-lg p-4">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-bold text-gray-800">Vendor</h3>
+                        <h3 class="text-lg font-bold text-gray-800">To</h3>
                         <button type="button" id="select-vendor-btn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Change Vendor</button>
                     </div>
                     <div id="vendor-details" class="text-sm text-gray-600 space-y-1">
@@ -70,21 +61,6 @@
                             <p>{{ $purchaseOrder->vendor->email }} | {{ $purchaseOrder->vendor->phone }}</p>
                         @else
                             <p>No vendor selected.</p>
-                        @endif
-                    </div>
-                </div>
-                <div class="border rounded-lg p-4">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-bold text-gray-800">Ship To Address</h3>
-                        <button type="button" id="select-address-btn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Change Address</button>
-                    </div>
-                    <div id="address-details" class="text-sm text-gray-600 space-y-1">
-                        @if($purchaseOrder->shipToAddress)
-                            <p><strong>{{ $purchaseOrder->shipToAddress->name }}</strong></p>
-                            <p>{{ $purchaseOrder->shipToAddress->address_line_1 }}, {{ $purchaseOrder->shipToAddress->city }}, {{ $purchaseOrder->shipToAddress->state }} - {{ $purchaseOrder->shipToAddress->zipcode }}</p>
-                            <p>{{ $purchaseOrder->shipToAddress->contact_person ?? '' }} | {{ $purchaseOrder->shipToAddress->phone ?? '' }}</p>
-                        @else
-                            <p>No address selected.</p>
                         @endif
                     </div>
                 </div>
@@ -185,36 +161,14 @@
     </div>
 </div>
 
-<!-- Address Modal -->
-<div id="address-modal" class="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-full overflow-y-auto">
-        <div class="p-4 border-b">
-            <h3 class="text-lg font-bold">Select a Shipping Address</h3>
-        </div>
-        <div class="p-4">
-            <input type="text" id="address-search" placeholder="Search addresses..." class="w-full p-2 border rounded-md mb-4">
-            <div id="address-list" class="space-y-2">
-                <!-- JS generated -->
-            </div>
-        </div>
-        <div class="p-4 border-t flex justify-end">
-             <button type="button" id="close-address-modal" class="bg-gray-500 text-white px-4 py-2 rounded-md">Close</button>
-        </div>
-    </div>
-</div>
-
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const vendors = @json($vendors);
-    const shipToAddresses = @json($shipToAddresses);
 
     // Modal Handling
     const vendorModal = document.getElementById('vendor-modal');
-    const addressModal = document.getElementById('address-modal');
     document.getElementById('select-vendor-btn').addEventListener('click', () => vendorModal.classList.remove('hidden'));
-    document.getElementById('select-address-btn').addEventListener('click', () => addressModal.classList.remove('hidden'));
     document.getElementById('close-vendor-modal').addEventListener('click', () => vendorModal.classList.add('hidden'));
-    document.getElementById('close-address-modal').addEventListener('click', () => addressModal.classList.add('hidden'));
 
     // Vendor Selection
     const vendorList = document.getElementById('vendor-list');
@@ -250,42 +204,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     vendorSearch.addEventListener('input', (e) => renderVendors(e.target.value));
     renderVendors();
-
-
-    // Address Selection
-    const addressList = document.getElementById('address-list');
-    const addressDetails = document.getElementById('address-details');
-    const addressIdInput = document.getElementById('ship_to_address_id_input');
-    const addressSearch = document.getElementById('address-search');
-
-    function displayAddress(address) {
-        if (!address) {
-            addressDetails.innerHTML = '<p>No address selected.</p>';
-            return;
-        }
-        addressIdInput.value = address.id;
-        addressDetails.innerHTML = `
-            <p><strong>${address.name}</strong></p>
-            <p>${address.address}, ${address.city}, ${address.state} - ${address.zipcode}</p>
-            <p>${address.contact_person || ''} | ${address.phone || ''}</p>
-        `;
-    }
-
-    function renderAddresses(filter = '') {
-        addressList.innerHTML = '';
-        shipToAddresses.filter(a => a.name.toLowerCase().includes(filter.toLowerCase()) || a.address.toLowerCase().includes(filter.toLowerCase())).forEach(address => {
-            const div = document.createElement('div');
-            div.className = 'p-2 border rounded-md cursor-pointer hover:bg-gray-100';
-            div.textContent = `${address.name} - ${address.address}, ${address.city}`;
-            div.addEventListener('click', () => {
-                displayAddress(address);
-                addressModal.classList.add('hidden');
-            });
-            addressList.appendChild(div);
-        });
-    }
-    addressSearch.addEventListener('input', (e) => renderAddresses(e.target.value));
-    renderAddresses();
 
 
     // --- The rest of the script for items and totals remains the same ---
@@ -377,7 +295,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     updateTotals(); // Initial calculation
     displayVendor(@json($purchaseOrder->vendor));
-    displayAddress(@json($purchaseOrder->shipToAddress));
 });
 </script>
 @endsection

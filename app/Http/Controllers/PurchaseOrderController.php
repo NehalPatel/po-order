@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\PurchaseOrder;
 use App\Models\Vendor;
-use App\Models\ShipToAddress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -30,9 +29,8 @@ class PurchaseOrderController extends Controller
     public function create()
     {
         $vendors = Vendor::orderBy('company_name')->get();
-        $shipToAddresses = ShipToAddress::where('team_id', Auth::user()->currentTeam->id)->get();
-
-        return view('purchase-orders.create', compact('vendors', 'shipToAddresses'));
+        $poNumber = $this->generatePoNumber();
+        return view('purchase-orders.create', compact('vendors', 'poNumber'));
     }
 
     /**
@@ -44,7 +42,6 @@ class PurchaseOrderController extends Controller
             'po_number' => 'required|string|unique:purchase_orders,po_number',
             'po_date' => 'required|date',
             'vendor_id' => 'required|exists:vendors,id',
-            'ship_to_address_id' => 'required|exists:ship_to_addresses,id',
             'sub_total' => 'required|numeric',
             'tax' => 'required|numeric',
             'shipping' => 'required|numeric',
@@ -53,7 +50,6 @@ class PurchaseOrderController extends Controller
             'notes' => 'nullable|string',
             'terms_and_conditions' => 'nullable|string',
             'status' => 'required|string|in:draft,sent,approved,completed,cancelled',
-            'payment_status' => 'required|string|in:unpaid,paid,partially_paid',
             'expected_delivery_date' => 'nullable|date|after_or_equal:po_date',
             'items' => 'required|array|min:1',
             'items.*.item_name' => 'required|string|max:255',
@@ -69,7 +65,6 @@ class PurchaseOrderController extends Controller
                     'po_number' => $validatedData['po_number'],
                     'po_date' => $validatedData['po_date'],
                     'vendor_id' => $validatedData['vendor_id'],
-                    'ship_to_address_id' => $validatedData['ship_to_address_id'],
                     'sub_total' => $validatedData['sub_total'],
                     'tax' => $validatedData['tax'],
                     'shipping' => $validatedData['shipping'],
@@ -78,7 +73,6 @@ class PurchaseOrderController extends Controller
                     'notes' => $validatedData['notes'],
                     'terms_and_conditions' => $validatedData['terms_and_conditions'],
                     'status' => $validatedData['status'] ?? 'draft',
-                    'payment_status' => $validatedData['payment_status'] ?? 'unpaid',
                     'expected_delivery_date' => $validatedData['expected_delivery_date'],
                 ]);
 
@@ -125,10 +119,9 @@ class PurchaseOrderController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $purchaseOrder->load('vendor', 'shipToAddress');
+        $purchaseOrder->load('vendor');
         $vendors = Vendor::orderBy('company_name')->get();
-        $shipToAddresses = ShipToAddress::where('team_id', Auth::user()->currentTeam->id)->get();
-        return view('purchase-orders.edit', compact('purchaseOrder', 'vendors', 'shipToAddresses'));
+        return view('purchase-orders.edit', compact('purchaseOrder', 'vendors'));
     }
 
     /**
@@ -144,7 +137,6 @@ class PurchaseOrderController extends Controller
             'po_number' => 'required|string|max:255|unique:purchase_orders,po_number,' . $purchaseOrder->id,
             'po_date' => 'required|date',
             'vendor_id' => 'required|exists:vendors,id',
-            'ship_to_address_id' => 'required|exists:ship_to_addresses,id',
             'sub_total' => 'required|numeric',
             'tax' => 'required|numeric',
             'shipping' => 'required|numeric',
@@ -153,7 +145,6 @@ class PurchaseOrderController extends Controller
             'notes' => 'nullable|string',
             'terms_and_conditions' => 'nullable|string',
             'status' => 'required|string|in:draft,sent,approved,completed,cancelled',
-            'payment_status' => 'required|string|in:unpaid,paid,partially_paid',
             'expected_delivery_date' => 'required|date|after_or_equal:po_date',
             'items' => 'required|array|min:1',
             'items.*.id' => 'nullable|integer|exists:purchase_order_items,id',
@@ -168,7 +159,6 @@ class PurchaseOrderController extends Controller
                 'po_number' => $validatedData['po_number'],
                 'po_date' => $validatedData['po_date'],
                 'vendor_id' => $validatedData['vendor_id'],
-                'ship_to_address_id' => $validatedData['ship_to_address_id'],
                 'sub_total' => $validatedData['sub_total'],
                 'tax' => $validatedData['tax'],
                 'shipping' => $validatedData['shipping'],
@@ -177,7 +167,6 @@ class PurchaseOrderController extends Controller
                 'notes' => $validatedData['notes'],
                 'terms_and_conditions' => $validatedData['terms_and_conditions'],
                 'status' => $validatedData['status'],
-                'payment_status' => $validatedData['payment_status'],
                 'expected_delivery_date' => $validatedData['expected_delivery_date'],
             ]);
 
@@ -230,5 +219,26 @@ class PurchaseOrderController extends Controller
 
         $purchaseOrder->delete();
         return redirect()->route('purchase-orders.index')->with('success', 'Purchase Order deleted successfully.');
+    }
+
+    /**
+     * Generate the next PO number in AY-YYYY-YY-XXXX format.
+     */
+    protected function generatePoNumber()
+    {
+        $now = now();
+        $year = $now->month >= 4 ? $now->year : $now->year - 1;
+        $nextYear = $year + 1;
+        $ay = sprintf('AY-%d-%02d', $year, $nextYear % 100);
+        $start = now()->setDate($year, 4, 1)->startOfDay();
+        $end = now()->setDate($nextYear, 3, 31)->endOfDay();
+        $lastPo = \App\Models\PurchaseOrder::whereBetween('po_date', [$start, $end])
+            ->where('po_number', 'like', $ay . '-%')
+            ->orderByDesc('id')->first();
+        $nextSeq = 1;
+        if ($lastPo && preg_match('/-(\\d{4})$/', $lastPo->po_number, $m)) {
+            $nextSeq = intval($m[1]) + 1;
+        }
+        return $ay . '-' . str_pad($nextSeq, 4, '0', STR_PAD_LEFT);
     }
 }

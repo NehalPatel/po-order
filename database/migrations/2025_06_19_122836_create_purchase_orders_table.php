@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('po_number');
             $table->date('po_date');
             $table->foreignId('vendor_id')->constrained()->onDelete('restrict');
-            $table->foreignId('ship_to_address_id')->constrained()->onDelete('restrict');
             $table->decimal('sub_total', 15, 2);
             $table->decimal('tax', 15, 2);
             $table->decimal('shipping', 15, 2);
@@ -26,7 +25,6 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->text('terms_and_conditions')->nullable();
             $table->string('status')->default('draft'); // e.g., draft, sent, approved, completed
-            $table->string('payment_status')->default('unpaid'); // e.g., unpaid, paid, partially_paid
             $table->date('expected_delivery_date')->nullable();
             $table->timestamps();
         });

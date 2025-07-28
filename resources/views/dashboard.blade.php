@@ -130,45 +130,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Payment Status Chart -->
-        <div class="bg-white rounded-lg shadow-sm p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Payment Status</h3>
-            <div class="grid grid-cols-1 gap-4">
-                <div class="bg-gray-50 p-4 rounded-lg">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-medium text-gray-600">Unpaid</span>
-                        <span class="text-sm font-semibold text-gray-900">{{ \App\Models\PurchaseOrder::where('payment_status', 'unpaid')->count() }}</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2.5">
-                        @php $unpaidPercentage = \App\Models\PurchaseOrder::count() > 0 ? (\App\Models\PurchaseOrder::where('payment_status', 'unpaid')->count() / \App\Models\PurchaseOrder::count()) * 100 : 0; @endphp
-                        <div class="bg-red-600 h-2.5 rounded-full" style="width: {{ $unpaidPercentage }}%"></div>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-50 p-4 rounded-lg">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-medium text-gray-600">Partially Paid</span>
-                        <span class="text-sm font-semibold text-gray-900">{{ \App\Models\PurchaseOrder::where('payment_status', 'partially_paid')->count() }}</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2.5">
-                        @php $partiallyPaidPercentage = \App\Models\PurchaseOrder::count() > 0 ? (\App\Models\PurchaseOrder::where('payment_status', 'partially_paid')->count() / \App\Models\PurchaseOrder::count()) * 100 : 0; @endphp
-                        <div class="bg-yellow-600 h-2.5 rounded-full" style="width: {{ $partiallyPaidPercentage }}%"></div>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-50 p-4 rounded-lg">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-medium text-gray-600">Paid</span>
-                        <span class="text-sm font-semibold text-gray-900">{{ \App\Models\PurchaseOrder::where('payment_status', 'paid')->count() }}</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2.5">
-                        @php $paidPercentage = \App\Models\PurchaseOrder::count() > 0 ? (\App\Models\PurchaseOrder::where('payment_status', 'paid')->count() / \App\Models\PurchaseOrder::count()) * 100 : 0; @endphp
-                        <div class="bg-green-600 h-2.5 rounded-full" style="width: {{ $paidPercentage }}%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Recent Purchase Orders -->
@@ -253,7 +214,7 @@
                 </div>
             </a>
 
-            <a href="{{ route('ship-to-addresses.create') }}" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <div class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                 <svg class="w-6 h-6 text-purple-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -262,7 +223,7 @@
                     <p class="font-medium text-gray-900">Add Address</p>
                     <p class="text-sm text-gray-500">New shipping address</p>
                 </div>
-            </a>
+            </div>
         </div>
     </div>
 </div>

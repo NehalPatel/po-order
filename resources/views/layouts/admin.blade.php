@@ -35,9 +35,6 @@
                     <a href="{{ route('purchase-orders.index') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('purchase-orders.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                         Purchase Orders
                     </a>
-                    <a href="{{ route('ship-to-addresses.index') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('ship-to-addresses.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
-                        Ship To Addresses
-                    </a>
                     <a href="{{ route('vendors.index') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('vendors.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                         Vendors
                     </a>

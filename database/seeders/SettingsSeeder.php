@@ -19,15 +19,15 @@ class SettingsSeeder extends Seeder
         foreach ($teams as $team) {
             // Create settings for each team
             Setting::create([
-                'team_id' => $team->id,
-                'company_name' => $this->getCompanyName($team),
+                'team_id'        => $team->id,
+                'company_name'   => $this->getCompanyName($team),
                 'street_address' => $this->getStreetAddress($team),
-                'city' => $this->getCity($team),
-                'state' => $this->getState($team),
-                'zipcode' => $this->getZipcode($team),
-                'phone' => $this->getPhone($team),
-                'website' => $this->getWebsite($team),
-                'email' => $this->getEmail($team),
+                'city'           => $this->getCity($team),
+                'state'          => $this->getState($team),
+                'zipcode'        => $this->getZipcode($team),
+                'phone'          => $this->getPhone($team),
+                'website'        => $this->getWebsite($team),
+                'email'          => $this->getEmail($team),
             ]);
         }
 

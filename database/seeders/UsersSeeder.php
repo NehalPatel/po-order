@@ -16,31 +16,31 @@ class UsersSeeder extends Seeder
     {
         // Create first user - Admin
         $admin = User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@sdjic.org',
-            'password' => Hash::make('password'),
+            'name'              => 'Admin User',
+            'email'             => 'admin@sdjic.org',
+            'password'          => Hash::make('password'),
             'email_verified_at' => now(),
         ]);
 
         // Create second user - Regular User
         $user = User::create([
-            'name' => 'Nehal Patel',
-            'email' => 'nehal.sdjic@sdjic.org',
-            'password' => Hash::make('password'),
+            'name'              => 'Nehal Patel',
+            'email'             => 'nehal.sdjic@sdjic.org',
+            'password'          => Hash::make('password'),
             'email_verified_at' => now(),
         ]);
 
         // Create SDJIC-Vesu team
         $sdjicVesuTeam = Team::forceCreate([
-            'user_id' => $admin->id,
-            'name' => 'SDJIC-Vesu',
+            'user_id'       => $admin->id,
+            'name'          => 'SDJIC-Vesu',
             'personal_team' => false,
         ]);
 
         // Add both users to SDJIC-Vesu team
         $sdjicVesuTeam->users()->attach([
             $admin->id => ['role' => 'admin'],
-            $user->id => ['role' => 'editor'],
+            $user->id  => ['role' => 'editor'],
         ]);
 
         // Set current team for users
@@ -48,15 +48,15 @@ class UsersSeeder extends Seeder
 
         // Create SDJIC-Palsana team
         $sdjicPalsanaTeam = Team::forceCreate([
-            'user_id' => $user->id,
-            'name' => 'SDJIC-Palsana',
+            'user_id'       => $user->id,
+            'name'          => 'SDJIC-Palsana',
             'personal_team' => false,
         ]);
 
         // Add both users to SDJIC-Palsana team
         $sdjicPalsanaTeam->users()->attach([
             $admin->id => ['role' => 'admin'],
-            $user->id => ['role' => 'admin'],
+            $user->id  => ['role' => 'admin'],
         ]);
 
         $user->switchTeam($sdjicPalsanaTeam);

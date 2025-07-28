@@ -23,15 +23,14 @@
 
     <form action="{{ route('purchase-orders.store') }}" method="POST" id="po-form" class="bg-white p-6 rounded-lg shadow-md">
         @csrf
-        <input type="hidden" name="po_number" id="po_number_input">
+        <input type="hidden" name="po_number" id="po_number_input" value="{{ old('po_number', $poNumber ?? '') }}">
         <input type="hidden" name="vendor_id" id="vendor_id_input" required>
-        <input type="hidden" name="ship_to_address_id" id="ship_to_address_id_input" required>
 
         <!-- PO Details -->
         <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
-            <div>
+            <div class="md:col-span-3">
                 <label for="po_number_display" class="block text-sm font-medium text-gray-700">PO Number</label>
-                <input type="text" id="po_number_display" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-100" disabled>
+                <input type="text" id="po_number_display" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-100" disabled value="{{ old('po_number', $poNumber ?? '') }}">
             </div>
             <div>
                 <label for="po_date" class="block text-sm font-medium text-gray-700">PO Date</label>
@@ -51,35 +50,16 @@
                     <option value="cancelled" @if(old('status') == 'cancelled') selected @endif>Cancelled</option>
                 </select>
             </div>
-             <div>
-                <label for="payment_status" class="block text-sm font-medium text-gray-700">Payment Status</label>
-                <select name="payment_status" id="payment_status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                    <option value="unpaid" @if(old('payment_status') == 'unpaid') selected @endif>Unpaid</option>
-                    <option value="paid" @if(old('payment_status') == 'paid') selected @endif>Paid</option>
-                    <option value="partially_paid" @if(old('payment_status') == 'partially_paid') selected @endif>Partially Paid</option>
-                </select>
-            </div>
-
         </div>
-
-        <!-- Vendor and Ship To Sections -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <!-- To (Vendor) Section Full Row -->
+        <div class="mb-8">
             <div class="border rounded-lg p-4">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-bold text-gray-800">Vendor</h3>
+                    <h3 class="text-lg font-bold text-gray-800">To</h3>
                     <button type="button" id="select-vendor-btn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Select Vendor</button>
                 </div>
                 <div id="vendor-details" class="text-sm text-gray-600 space-y-1">
                     <p>No vendor selected.</p>
-                </div>
-            </div>
-            <div class="border rounded-lg p-4">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-bold text-gray-800">Ship To Address</h3>
-                    <button type="button" id="select-address-btn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Select Address</button>
-                </div>
-                <div id="address-details" class="text-sm text-gray-600 space-y-1">
-                    <p>No address selected.</p>
                 </div>
             </div>
         </div>
@@ -184,28 +164,12 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const vendors = @json($vendors);
-    const shipToAddresses = @json($shipToAddresses);
-
-    // PO Number Generation
-    const poNumberInput = document.getElementById('po_number_input');
-    const poNumberDisplay = document.getElementById('po_number_display');
-    if (!poNumberInput.value) {
-        const date = new Date();
-        const poNumber = `PO-${date.getFullYear()}${('0' + (date.getMonth() + 1)).slice(-2)}${('0' + date.getDate()).slice(-2)}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-        poNumberInput.value = poNumber;
-        poNumberDisplay.value = poNumber;
-    }
 
     // Modal Handling
     const vendorModal = document.getElementById('vendor-modal');
-    const addressModal = document.getElementById('address-modal');
     const selectVendorBtn = document.getElementById('select-vendor-btn');
-    const selectAddressBtn = document.getElementById('select-address-btn');
-
     selectVendorBtn.addEventListener('click', () => vendorModal.classList.remove('hidden'));
-    selectAddressBtn.addEventListener('click', () => addressModal.classList.remove('hidden'));
     document.getElementById('close-vendor-modal').addEventListener('click', () => vendorModal.classList.add('hidden'));
-    document.getElementById('close-address-modal').addEventListener('click', () => addressModal.classList.add('hidden'));
 
     // Vendor Selection
     const vendorList = document.getElementById('vendor-list');
@@ -234,47 +198,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     vendorSearch.addEventListener('input', (e) => renderVendors(e.target.value));
     renderVendors();
-
-    // Address Selection
-    const addressList = document.getElementById('address-list');
-    const addressDetails = document.getElementById('address-details');
-    const addressIdInput = document.getElementById('ship_to_address_id_input');
-    const addressSearch = document.getElementById('address-search');
-
-    function renderAddresses(filter = '') {
-        addressList.innerHTML = '';
-        const filteredAddresses = shipToAddresses.filter(a => a.name.toLowerCase().includes(filter.toLowerCase()) || (a.address && a.address.toLowerCase().includes(filter.toLowerCase())));
-
-        if (filteredAddresses.length === 0) {
-            addressList.innerHTML = '<p class="text-gray-500">No addresses found.</p>';
-            return;
-        }
-
-        filteredAddresses.forEach(address => {
-            const div = document.createElement('div');
-            div.className = 'p-2 border rounded-md cursor-pointer hover:bg-gray-100';
-            div.textContent = `${address.name} - ${address.address}, ${address.city}`;
-            div.dataset.addressId = address.id; // Use a specific data attribute
-
-            div.addEventListener('click', function () {
-                const selectedId = this.dataset.addressId;
-                const selectedAddress = shipToAddresses.find(a => a.id == selectedId);
-
-                if (selectedAddress) {
-                    addressIdInput.value = selectedAddress.id;
-                    addressDetails.innerHTML = `
-                        <p><strong>${selectedAddress.name}</strong></p>
-                        <p>${selectedAddress.address}, ${selectedAddress.city}, ${selectedAddress.state} - ${selectedAddress.zipcode}</p>
-                        <p>${selectedAddress.contact_person || ''} | ${selectedAddress.phone || ''}</p>
-                    `;
-                    addressModal.classList.add('hidden');
-                }
-            });
-            addressList.appendChild(div);
-        });
-    }
-    addressSearch.addEventListener('input', (e) => renderAddresses(e.target.value));
-    renderAddresses();
 
     const shippingCostInput = document.getElementById('shipping_cost');
     const otherCostInput = document.getElementById('other_cost');

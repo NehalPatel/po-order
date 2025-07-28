@@ -80,13 +80,6 @@
                         @endif">
                         {{ ucfirst($purchaseOrder->status) }}
                     </span>
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
-                        @if($purchaseOrder->payment_status == 'unpaid') bg-red-100 text-red-800
-                        @elseif($purchaseOrder->payment_status == 'partially_paid') bg-yellow-100 text-yellow-800
-                        @elseif($purchaseOrder->payment_status == 'paid') bg-green-100 text-green-800
-                        @endif">
-                        {{ ucfirst(str_replace('_', ' ', $purchaseOrder->payment_status)) }}
-                    </span>
                 </div>
             </div>
         </div>
@@ -95,18 +88,17 @@
         <div class="grid grid-cols-2 gap-8 mb-8">
             <div class="bg-gray-100 p-4 rounded-lg">
                 <h3 class="font-bold border-b pb-2 mb-2">VENDOR</h3>
-                <p class="font-semibold">{{ $purchaseOrder->vendor->company_name }}</p>
-                <p>{{ $purchaseOrder->vendor->address }}<br>{{ $purchaseOrder->vendor->city }}, {{ $purchaseOrder->vendor->state }} {{ $purchaseOrder->vendor->zip_code }}</p>
-                <p><strong>Contact:</strong> {{ $purchaseOrder->vendor->contact_person }}</p>
-                <p><strong>Email:</strong> {{ $purchaseOrder->vendor->email }}</p>
-                <p><strong>Phone:</strong> {{ $purchaseOrder->vendor->phone }}</p>
+                @if($purchaseOrder->vendor)
+                    <p class="font-semibold">{{ $purchaseOrder->vendor->company_name }}</p>
+                    <p>{{ $purchaseOrder->vendor->address }}<br>{{ $purchaseOrder->vendor->city }}, {{ $purchaseOrder->vendor->state }} {{ $purchaseOrder->vendor->zip_code }}</p>
+                    <p><strong>Contact:</strong> {{ $purchaseOrder->vendor->contact_person }}</p>
+                    <p><strong>Email:</strong> {{ $purchaseOrder->vendor->email }}</p>
+                    <p><strong>Phone:</strong> {{ $purchaseOrder->vendor->phone }}</p>
+                @else
+                    <p class="text-red-500">Vendor not found.</p>
+                @endif
             </div>
-            <div class="bg-gray-100 p-4 rounded-lg">
-                <h3 class="font-bold border-b pb-2 mb-2">SHIP TO</h3>
-                <p class="font-semibold">{{ $purchaseOrder->shipToAddress->name }}</p>
-                <p>{{ $purchaseOrder->shipToAddress->address }}<br>{{ $purchaseOrder->shipToAddress->city }}, {{ $purchaseOrder->shipToAddress->state }} {{ $purchaseOrder->shipToAddress->zip_code }}</p>
-                 <p class="mt-4"><strong>Expected Delivery:</strong> {{ $purchaseOrder->expected_delivery_date->format('F j, Y') }}</p>
-            </div>
+            <!-- Remove the Ship To section entirely -->
         </div>
 
         <!-- Items Table -->
