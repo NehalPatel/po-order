@@ -13,12 +13,33 @@ class PurchaseOrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $purchaseOrders = PurchaseOrder::where('team_id', Auth::user()->currentTeam->id)
-            ->with('vendor')
-            ->latest()
-            ->paginate(10);
+        $query = PurchaseOrder::where('team_id', Auth::user()->currentTeam->id)
+            ->with('vendor');
+
+        // Search by PO number
+        if ($request->filled('po_number')) {
+            $query->where('po_number', 'like', '%' . $request->po_number . '%');
+        }
+
+        // Search by vendor
+        if ($request->filled('vendor')) {
+            $query->whereHas('vendor', function ($q) use ($request) {
+                $q->where('company_name', 'like', '%' . $request->vendor . '%');
+            });
+        }
+
+        // Search by date
+        if ($request->filled('date_from')) {
+            $query->where('po_date', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->where('po_date', '<=', $request->date_to);
+        }
+
+        $purchaseOrders = $query->latest()->paginate(10);
 
         return view('purchase-orders.index', compact('purchaseOrders'));
     }

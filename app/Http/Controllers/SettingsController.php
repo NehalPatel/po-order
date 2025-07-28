@@ -28,14 +28,19 @@ class SettingsController extends Controller
         $teamId = Auth::user()->currentTeam->id;
         $data = $request->validate([
             'company_name' => 'nullable|string|max:255',
-            'street_address' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:255',
-            'state' => 'nullable|string|max:255',
-            'zipcode' => 'nullable|string|max:255',
+            'address' => 'nullable|string',
             'phone' => 'nullable|string|max:255',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'website' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255',
         ]);
+
+        // Handle logo upload
+        if ($request->hasFile('logo')) {
+            $logoPath = $request->file('logo')->store('logos', 'public');
+            $data['logo'] = $logoPath;
+        }
+
         $data['team_id'] = $teamId;
         Setting::create($data);
         return redirect()->route('settings.index')->with('success', 'Setting created successfully.');
@@ -58,14 +63,24 @@ class SettingsController extends Controller
     {
         $data = $request->validate([
             'company_name' => 'nullable|string|max:255',
-            'street_address' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:255',
-            'state' => 'nullable|string|max:255',
-            'zipcode' => 'nullable|string|max:255',
+            'address' => 'nullable|string',
             'phone' => 'nullable|string|max:255',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'website' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255',
         ]);
+
+        // Handle logo upload
+        if ($request->hasFile('logo')) {
+            // Delete old logo if exists
+            if ($setting->logo && \Storage::disk('public')->exists($setting->logo)) {
+                \Storage::disk('public')->delete($setting->logo);
+            }
+
+            $logoPath = $request->file('logo')->store('logos', 'public');
+            $data['logo'] = $logoPath;
+        }
+
         $setting->update($data);
         return redirect()->route('settings.index')->with('success', 'Setting updated successfully.');
     }
@@ -76,4 +91,4 @@ class SettingsController extends Controller
         $setting->delete();
         return redirect()->route('settings.index')->with('success', 'Setting deleted successfully.');
     }
-} 
+}

@@ -17,7 +17,7 @@
         </div>
     @endif
 
-    <form action="{{ route('settings.store') }}" method="POST">
+    <form action="{{ route('settings.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
         <div class="bg-white rounded-lg shadow-sm p-6">
             <div class="space-y-6">

@@ -4,29 +4,26 @@
     @error('company_name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
 </div>
 <div class="mb-4">
-    <label for="street_address" class="block font-medium">Street Address</label>
-    <input type="text" id="street_address" name="street_address" value="{{ old('street_address', $setting->street_address ?? '') }}" class="form-input w-full" />
-    @error('street_address') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-</div>
-<div class="mb-4">
-    <label for="city" class="block font-medium">City</label>
-    <input type="text" id="city" name="city" value="{{ old('city', $setting->city ?? '') }}" class="form-input w-full" />
-    @error('city') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-</div>
-<div class="mb-4">
-    <label for="state" class="block font-medium">State</label>
-    <input type="text" id="state" name="state" value="{{ old('state', $setting->state ?? '') }}" class="form-input w-full" />
-    @error('state') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-</div>
-<div class="mb-4">
-    <label for="zipcode" class="block font-medium">Zipcode</label>
-    <input type="text" id="zipcode" name="zipcode" value="{{ old('zipcode', $setting->zipcode ?? '') }}" class="form-input w-full" />
-    @error('zipcode') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+    <label for="address" class="block font-medium">Address</label>
+    <textarea id="address" name="address" rows="3" class="form-input w-full" placeholder="Enter complete address including street, city, state, and zipcode">{{ old('address', $setting->address ?? '') }}</textarea>
+    @error('address') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
 </div>
 <div class="mb-4">
     <label for="phone" class="block font-medium">Phone</label>
     <input type="text" id="phone" name="phone" value="{{ old('phone', $setting->phone ?? '') }}" class="form-input w-full" />
     @error('phone') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+</div>
+
+<div class="mb-4">
+    <label for="logo" class="block font-medium">Company Logo</label>
+    @if(isset($setting) && $setting->logo)
+        <div class="mb-2">
+            <img src="{{ $setting->logo_url }}" alt="Current Logo" class="w-32 h-32 object-contain border border-gray-300 rounded">
+        </div>
+    @endif
+    <input type="file" id="logo" name="logo" accept="image/*" class="form-input w-full" />
+    <p class="text-sm text-gray-500 mt-1">Upload a logo image (JPEG, PNG, JPG, GIF - max 2MB)</p>
+    @error('logo') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
 </div>
 <div class="mb-4">
     <label for="website" class="block font-medium">Website</label>
@@ -37,4 +34,4 @@
     <label for="email" class="block font-medium">Email</label>
     <input type="email" id="email" name="email" value="{{ old('email', $setting->email ?? '') }}" class="form-input w-full" />
     @error('email') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-</div> 
+</div>

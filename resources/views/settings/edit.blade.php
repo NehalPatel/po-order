@@ -17,7 +17,7 @@
         </div>
     @endif
 
-    <form action="{{ route('settings.update', $setting) }}" method="POST">
+    <form action="{{ route('settings.update', $setting) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
         <div class="bg-white rounded-lg shadow-sm p-6">

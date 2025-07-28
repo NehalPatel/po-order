@@ -21,11 +21,9 @@ class SettingsSeeder extends Seeder
             Setting::create([
                 'team_id'        => $team->id,
                 'company_name'   => $this->getCompanyName($team),
-                'street_address' => $this->getStreetAddress($team),
-                'city'           => $this->getCity($team),
-                'state'          => $this->getState($team),
-                'zipcode'        => $this->getZipcode($team),
+                'address'        => $this->getFullAddress($team),
                 'phone'          => $this->getPhone($team),
+                'logo'           => null, // No default logo for seeded data
                 'website'        => $this->getWebsite($team),
                 'email'          => $this->getEmail($team),
             ]);
@@ -48,55 +46,16 @@ class SettingsSeeder extends Seeder
     }
 
     /**
-     * Get street address based on team
+     * Get full address based on team
      */
-    private function getStreetAddress($team): string
+    private function getFullAddress($team): string
     {
         if ($team->name === 'Admin User\'s Team') {
-            return '123 Admin Street';
+            return '123 Admin Street, Admin City, AC 12345';
         } elseif ($team->name === 'Nehal Patel\'s Team') {
-            return '456 Business Avenue';
+            return '456 Business Avenue, Business City, BC 67890';
         }
-        return '789 Main Street';
-    }
-
-    /**
-     * Get city based on team
-     */
-    private function getCity($team): string
-    {
-        if ($team->name === 'Admin User\'s Team') {
-            return 'Admin City';
-        } elseif ($team->name === 'Nehal Patel\'s Team') {
-            return 'Business City';
-        }
-        return 'Default City';
-    }
-
-    /**
-     * Get state based on team
-     */
-    private function getState($team): string
-    {
-        if ($team->name === 'Admin User\'s Team') {
-            return 'AC';
-        } elseif ($team->name === 'Nehal Patel\'s Team') {
-            return 'BC';
-        }
-        return 'DC';
-    }
-
-    /**
-     * Get zipcode based on team
-     */
-    private function getZipcode($team): string
-    {
-        if ($team->name === 'Admin User\'s Team') {
-            return '12345';
-        } elseif ($team->name === 'Nehal Patel\'s Team') {
-            return '67890';
-        }
-        return '11111';
+        return '789 Main Street, Default City, DC 11111';
     }
 
     /**

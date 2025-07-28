@@ -34,6 +34,16 @@
     .print-button:hover {
         background-color: #2D3748;
     }
+    .company-logo {
+        max-width: 80px;
+        max-height: 80px;
+        object-fit: contain;
+    }
+    .footer-logo {
+        max-width: 48px;
+        max-height: 48px;
+        object-fit: contain;
+    }
     @media print {
         body * {
             visibility: hidden;
@@ -57,14 +67,32 @@
     <div class="p-8 po-container">
         <!-- Header -->
         <div class="header-section grid grid-cols-2 gap-4 items-start">
-            <div>
+            <div class="flex items-start space-x-4">
                 @php
                     $settings = optional($purchaseOrder->team)->settings;
                     $setting = $settings ? $settings->first() : null;
                 @endphp
-                <h1 class="text-4xl font-bold uppercase">{{ $setting ? $setting->company_name : 'Your Company' }}</h1>
-                <p class="text-gray-600">{{ $setting ? $setting->street_address : '123 Main St' }}</p>
-                <p class="text-gray-600">{{ $setting ? $setting->city : 'Anytown' }}, {{ $setting ? $setting->state : 'ST' }} {{ $setting ? $setting->zipcode : '12345' }}</p>
+
+                @if($setting && $setting->logo)
+                    <div class="flex-shrink-0">
+                        <img src="{{ $setting->logo_url }}" alt="Company Logo" class="company-logo">
+                    </div>
+                @endif
+
+                <div>
+                    <h1 class="text-4xl font-bold uppercase">{{ $setting ? $setting->company_name : 'Your Company' }}</h1>
+                    @if($setting && $setting->address)
+                        <p class="text-gray-600">{{ $setting->address }}</p>
+                    @else
+                        <p class="text-gray-600">123 Main St, Anytown, ST 12345</p>
+                    @endif
+                    @if($setting && $setting->phone)
+                        <p class="text-gray-600">Phone: {{ $setting->phone }}</p>
+                    @endif
+                    @if($setting && $setting->email)
+                        <p class="text-gray-600">Email: {{ $setting->email }}</p>
+                    @endif
+                </div>
             </div>
             <div class="text-right">
                 <h2 class="text-3xl font-bold uppercase text-gray-800">Purchase Order</h2>
@@ -90,8 +118,11 @@
                 <h3 class="font-bold border-b pb-2 mb-2">VENDOR</h3>
                 @if($purchaseOrder->vendor)
                     <p class="font-semibold">{{ $purchaseOrder->vendor->company_name }}</p>
-                    <p>{{ $purchaseOrder->vendor->address }}<br>{{ $purchaseOrder->vendor->city }}, {{ $purchaseOrder->vendor->state }} {{ $purchaseOrder->vendor->zip_code }}</p>
-                    <p><strong>Contact:</strong> {{ $purchaseOrder->vendor->contact_person }}</p>
+                    <p>{{ $purchaseOrder->vendor->address }}</p>
+                    @if($purchaseOrder->vendor->city && $purchaseOrder->vendor->state && $purchaseOrder->vendor->zipcode)
+                        <p>{{ $purchaseOrder->vendor->city }}, {{ $purchaseOrder->vendor->state }} {{ $purchaseOrder->vendor->zipcode }}</p>
+                    @endif
+                    <p><strong>Contact:</strong> {{ $purchaseOrder->vendor->contact_person_name }}</p>
                     <p><strong>Email:</strong> {{ $purchaseOrder->vendor->email }}</p>
                     <p><strong>Phone:</strong> {{ $purchaseOrder->vendor->phone }}</p>
                 @else
@@ -175,7 +206,17 @@
         <!-- Footer -->
         <div class="footer-section text-center">
             <p>Thank you for your business!</p>
-            <p class="text-gray-500">{{ $setting ? $setting->company_name : 'Your Company' }} | {{ $setting ? $setting->website : 'yourwebsite.com' }}</p>
+            <div class="flex items-center justify-center space-x-4 mt-2">
+                @if($setting && $setting->logo)
+                    <img src="{{ $setting->logo_url }}" alt="Company Logo" class="footer-logo">
+                @endif
+                <div class="text-gray-500">
+                    <p>{{ $setting ? $setting->company_name : 'Your Company' }}</p>
+                    @if($setting && $setting->website)
+                        <p>{{ $setting->website }}</p>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -186,7 +227,7 @@
         </svg>
         Back to List
     </a>
-    
+
     <div class="flex space-x-2">
         <button onclick="window.print()" class="print-button">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -194,14 +235,14 @@
             </svg>
             Print Purchase Order
         </button>
-        
+
         <a href="{{ route('purchase-orders.edit', $purchaseOrder) }}" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md inline-flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
             Edit
         </a>
-        
+
         <form action="{{ route('purchase-orders.destroy', $purchaseOrder) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this purchase order?');">
             @csrf
             @method('DELETE')

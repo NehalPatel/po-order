@@ -15,11 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('team_id')->constrained()->onDelete('cascade');
             $table->string('company_name')->nullable();
-            $table->string('street_address')->nullable();
-            $table->string('city')->nullable();
-            $table->string('state')->nullable();
-            $table->string('zipcode')->nullable();
+            $table->text('address')->nullable();
             $table->string('phone')->nullable();
+            $table->string('logo')->nullable();
             $table->string('website')->nullable();
             $table->string('email')->nullable();
             $table->timestamps();
