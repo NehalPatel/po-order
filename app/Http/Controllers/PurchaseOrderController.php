@@ -16,7 +16,7 @@ class PurchaseOrderController extends Controller
     public function index(Request $request)
     {
         $query = PurchaseOrder::where('team_id', Auth::user()->currentTeam->id)
-            ->with('vendor');
+            ->with(['vendor', 'user']);
 
         // Search by PO number
         if ($request->filled('po_number')) {
@@ -39,9 +39,19 @@ class PurchaseOrderController extends Controller
             $query->where('po_date', '<=', $request->date_to);
         }
 
+        // Search by created by
+        if ($request->filled('created_by')) {
+            $query->where('user_id', $request->created_by);
+        }
+
         $purchaseOrders = $query->latest()->paginate(10);
 
-        return view('purchase-orders.index', compact('purchaseOrders'));
+        // Get users for the created_by filter
+        $users = \App\Models\User::where('current_team_id', Auth::user()->currentTeam->id)
+            ->orderBy('name')
+            ->get();
+
+        return view('purchase-orders.index', compact('purchaseOrders', 'users'));
     }
 
     /**
@@ -86,6 +96,7 @@ class PurchaseOrderController extends Controller
             DB::transaction(function () use ($validatedData) {
                 $purchaseOrder = PurchaseOrder::create([
                     'team_id' => Auth::user()->currentTeam->id,
+                    'user_id' => Auth::user()->id,
                     'po_number' => $validatedData['po_number'],
                     'po_date' => $validatedData['po_date'],
                     'vendor_id' => $validatedData['vendor_id'],
@@ -145,6 +156,21 @@ class PurchaseOrderController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Check authorization based on PO status
+        $currentUser = Auth::user();
+        $isAdmin = $currentUser->hasRole('Admin');
+        $isCreator = $purchaseOrder->user_id === $currentUser->id;
+
+        // If status is "approved", only admin can edit
+        if ($purchaseOrder->status === 'approved' && !$isAdmin) {
+            abort(403, 'Only administrators can edit approved purchase orders.');
+        }
+
+        // If status is "draft", only admin or creator can edit
+        if ($purchaseOrder->status === 'draft' && !$isAdmin && !$isCreator) {
+            abort(403, 'Only administrators and the creator can edit draft purchase orders.');
+        }
+
         $purchaseOrder->load('vendor', 'items.category', 'items.subcategory');
         $vendors = Vendor::orderBy('company_name')->get();
         $categories = \App\Models\Category::with('subcategories')->orderBy('name')->get();
@@ -158,6 +184,21 @@ class PurchaseOrderController extends Controller
     {
         if ($purchaseOrder->team_id !== Auth::user()->currentTeam->id) {
             abort(403, 'Unauthorized action.');
+        }
+
+        // Check authorization based on PO status
+        $currentUser = Auth::user();
+        $isAdmin = $currentUser->hasRole('Admin');
+        $isCreator = $purchaseOrder->user_id === $currentUser->id;
+
+        // If status is "approved", only admin can update
+        if ($purchaseOrder->status === 'approved' && !$isAdmin) {
+            abort(403, 'Only administrators can update approved purchase orders.');
+        }
+
+        // If status is "draft", only admin or creator can update
+        if ($purchaseOrder->status === 'draft' && !$isAdmin && !$isCreator) {
+            abort(403, 'Only administrators and the creator can update draft purchase orders.');
         }
 
         $validatedData = $request->validate([

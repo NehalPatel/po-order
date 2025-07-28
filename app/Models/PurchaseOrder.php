@@ -13,6 +13,7 @@ class PurchaseOrder extends Model
 
     protected $fillable = [
         'team_id',
+        'user_id',
         'po_number',
         'po_date',
         'vendor_id',
@@ -37,6 +38,14 @@ class PurchaseOrder extends Model
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);
+    }
+
+    /**
+     * Get the user who created the purchase order.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     /**

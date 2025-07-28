@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('purchase_orders', function (Blueprint $table) {
             $table->id();
             $table->foreignId('team_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Add user_id field
             $table->string('po_number');
             $table->date('po_date');
             $table->foreignId('vendor_id')->constrained()->onDelete('restrict');
