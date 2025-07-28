@@ -50,8 +50,8 @@ class PurchaseOrderController extends Controller
             'grand_total' => 'required|numeric',
             'notes' => 'nullable|string',
             'terms_and_conditions' => 'nullable|string',
+            'remarks' => 'nullable|string',
             'status' => 'required|string|in:draft,sent,approved,completed,cancelled',
-            'expected_delivery_date' => 'nullable|date|after_or_equal:po_date',
             'items' => 'required|array|min:1',
             'items.*.category_id' => 'nullable|exists:categories,id',
             'items.*.subcategory_id' => 'nullable|exists:subcategories,id',
@@ -75,8 +75,8 @@ class PurchaseOrderController extends Controller
                     'grand_total' => $validatedData['grand_total'],
                     'notes' => $validatedData['notes'],
                     'terms_and_conditions' => $validatedData['terms_and_conditions'],
+                    'remarks' => $validatedData['remarks'],
                     'status' => $validatedData['status'] ?? 'draft',
-                    'expected_delivery_date' => $validatedData['expected_delivery_date'],
                 ]);
 
                 foreach ($validatedData['items'] as $itemData) {
@@ -150,8 +150,8 @@ class PurchaseOrderController extends Controller
             'grand_total' => 'required|numeric',
             'notes' => 'nullable|string',
             'terms_and_conditions' => 'nullable|string',
+            'remarks' => 'nullable|string',
             'status' => 'required|string|in:draft,sent,approved,completed,cancelled',
-            'expected_delivery_date' => 'required|date|after_or_equal:po_date',
             'items' => 'required|array|min:1',
             'items.*.id' => 'nullable|integer|exists:purchase_order_items,id',
             'items.*.category_id' => 'nullable|exists:categories,id',
@@ -174,8 +174,8 @@ class PurchaseOrderController extends Controller
                 'grand_total' => $validatedData['grand_total'],
                 'notes' => $validatedData['notes'],
                 'terms_and_conditions' => $validatedData['terms_and_conditions'],
+                'remarks' => $validatedData['remarks'],
                 'status' => $validatedData['status'],
-                'expected_delivery_date' => $validatedData['expected_delivery_date'],
             ]);
 
             $existingIds = $purchaseOrder->items->pluck('id')->toArray();

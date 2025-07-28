@@ -23,13 +23,12 @@ class PurchaseOrder extends Model
         'grand_total',
         'notes',
         'terms_and_conditions',
+        'remarks',
         'status',
-        'expected_delivery_date',
     ];
 
     protected $casts = [
         'po_date' => 'date',
-        'expected_delivery_date' => 'date',
     ];
 
     /**

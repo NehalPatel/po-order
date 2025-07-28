@@ -32,10 +32,6 @@
                     <input type="date" name="po_date" id="po_date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required value="{{ old('po_date', optional($purchaseOrder->po_date)->format('Y-m-d')) }}">
                 </div>
                 <div>
-                    <label for="expected_delivery_date" class="block text-sm font-medium text-gray-700">Expected Delivery Date</label>
-                    <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" value="{{ old('expected_delivery_date', optional($purchaseOrder->expected_delivery_date)->format('Y-m-d')) }}">
-                </div>
-                <div>
                     <label for="status" class="block text-sm font-medium text-gray-700">Order Status</label>
                     <select name="status" id="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                         <option value="draft" @if(old('status', $purchaseOrder->status) == 'draft') selected @endif>Draft</option>
@@ -72,6 +68,8 @@
                 <table class="min-w-full bg-white">
                     <thead class="bg-gray-200">
                         <tr>
+                            <th class="py-2 px-4">Category</th>
+                            <th class="py-2 px-4">Subcategory</th>
                             <th class="py-2 px-4">Item Name</th>
                             <th class="py-2 px-4">Qty</th>
                             <th class="py-2 px-4">Unit Price</th>
@@ -84,6 +82,28 @@
                     <tbody id="items-tbody">
                         @foreach($purchaseOrder->items as $index => $item)
                         <tr>
+                            <td class="border px-2 py-1">
+                                <select name="items[{{ $index }}][category_id]" class="w-full border-gray-300 rounded text-sm category-select">
+                                    <option value="">Select Category</option>
+                                    @foreach($categories as $category)
+                                        <option value="{{ $category->id }}" {{ $item->category_id == $category->id ? 'selected' : '' }}>
+                                            {{ $category->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </td>
+                            <td class="border px-2 py-1">
+                                <select name="items[{{ $index }}][subcategory_id]" class="w-full border-gray-300 rounded text-sm subcategory-select">
+                                    <option value="">Select Subcategory</option>
+                                    @if($item->category)
+                                        @foreach($item->category->subcategories as $subcategory)
+                                            <option value="{{ $subcategory->id }}" {{ $item->subcategory_id == $subcategory->id ? 'selected' : '' }}>
+                                                {{ $subcategory->name }}
+                                            </option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                            </td>
                             <td class="border px-2 py-1"><input type="hidden" name="items[{{ $index }}][id]" value="{{ $item->id }}"><input type="text" name="items[{{ $index }}][item_name]" class="w-full border-gray-300 rounded text-sm" required value="{{ $item->item_name }}"></td>
                             <td class="border px-2 py-1"><input type="number" name="items[{{ $index }}][qty]" class="w-20 border-gray-300 rounded item-qty text-sm" required min="1" value="{{ $item->qty }}"></td>
                             <td class="border px-2 py-1"><input type="number" step="0.01" name="items[{{ $index }}][unit_price]" class="w-24 border-gray-300 rounded item-price text-sm" required min="0" value="{{ $item->unit_price }}"></td>
@@ -102,6 +122,12 @@
                     </tbody>
                 </table>
                 <button type="button" id="add-item-btn" class="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Add Item</button>
+                
+                <!-- Remark Field -->
+                <div class="mt-4">
+                    <label for="remarks" class="block text-sm font-medium text-gray-700">PO Purpose</label>
+                    <input type="text" name="remarks" id="remarks" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., New office built, Repairing, Maintenance, etc." value="{{ old('remarks', $purchaseOrder->remarks) }}">
+                </div>
             </div>
 
             <!-- Summary and Notes -->
@@ -164,10 +190,12 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const vendors = @json($vendors);
+    const categories = @json($categories);
 
     // Modal Handling
     const vendorModal = document.getElementById('vendor-modal');
-    document.getElementById('select-vendor-btn').addEventListener('click', () => vendorModal.classList.remove('hidden'));
+    const selectVendorBtn = document.getElementById('select-vendor-btn');
+    selectVendorBtn.addEventListener('click', () => vendorModal.classList.remove('hidden'));
     document.getElementById('close-vendor-modal').addEventListener('click', () => vendorModal.classList.add('hidden'));
 
     // Vendor Selection
@@ -205,14 +233,49 @@ document.addEventListener('DOMContentLoaded', function () {
     vendorSearch.addEventListener('input', (e) => renderVendors(e.target.value));
     renderVendors();
 
+    // Categories and Subcategories Functions
+    function populateCategories(selectElement) {
+        selectElement.innerHTML = '<option value="">Select Category</option>';
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.name;
+            selectElement.appendChild(option);
+        });
+    }
 
-    // --- The rest of the script for items and totals remains the same ---
+    function populateSubcategories(selectElement, categoryId) {
+        selectElement.innerHTML = '<option value="">Select Subcategory</option>';
+        if (categoryId) {
+            const category = categories.find(cat => cat.id == categoryId);
+            if (category && category.subcategories) {
+                category.subcategories.forEach(subcategory => {
+                    const option = document.createElement('option');
+                    option.value = subcategory.id;
+                    option.textContent = subcategory.name;
+                    selectElement.appendChild(option);
+                });
+            }
+        }
+    }
+
+    // Items Table Logic
     const itemsTbody = document.getElementById('items-tbody');
+    const addItemBtn = document.getElementById('add-item-btn');
     const shippingCostInput = document.getElementById('shipping_cost');
     const otherCostInput = document.getElementById('other_cost');
 
     shippingCostInput.addEventListener('input', updateTotals);
     otherCostInput.addEventListener('input', updateTotals);
+
+    // Handle category changes for existing items
+    itemsTbody.addEventListener('change', function(e) {
+        if (e.target.classList.contains('category-select')) {
+            const row = e.target.closest('tr');
+            const subcategorySelect = row.querySelector('.subcategory-select');
+            populateSubcategories(subcategorySelect, e.target.value);
+        }
+    });
 
     function calculateRowTotal(row) {
         const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
@@ -262,6 +325,16 @@ document.addEventListener('DOMContentLoaded', function () {
     function addItemRow() {
         const tr = document.createElement('tr');
         tr.innerHTML = `
+            <td class="border px-2 py-1">
+                <select name="items[${itemIndex}][category_id]" class="w-full border-gray-300 rounded text-sm category-select">
+                    <option value="">Select Category</option>
+                </select>
+            </td>
+            <td class="border px-2 py-1">
+                <select name="items[${itemIndex}][subcategory_id]" class="w-full border-gray-300 rounded text-sm subcategory-select">
+                    <option value="">Select Subcategory</option>
+                </select>
+            </td>
             <td class="border px-2 py-1"><input type="hidden" name="items[${itemIndex}][id]" value=""><input type="text" name="items[${itemIndex}][item_name]" class="w-full border-gray-300 rounded text-sm" required></td>
             <td class="border px-2 py-1"><input type="number" name="items[${itemIndex}][qty]" class="w-20 border-gray-300 rounded item-qty text-sm" required min="1" value="1"></td>
             <td class="border px-2 py-1"><input type="number" step="0.01" name="items[${itemIndex}][unit_price]" class="w-24 border-gray-300 rounded item-price text-sm" required min="0" value="0"></td>
@@ -270,30 +343,45 @@ document.addEventListener('DOMContentLoaded', function () {
             <td class="border px-2 py-1 item-total text-sm">₹0.00</td>
             <td class="border px-2 py-1 text-center">
                 <button type="button" class="text-red-500 hover:text-red-700 remove-item-btn p-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
+                    </svg>
                 </button>
             </td>
         `;
+        
+        // Populate categories for this row
+        const categorySelect = tr.querySelector('.category-select');
+        const subcategorySelect = tr.querySelector('.subcategory-select');
+        populateCategories(categorySelect);
+        
+        // Handle category change
+        categorySelect.addEventListener('change', function() {
+            populateSubcategories(subcategorySelect, this.value);
+        });
+        
         itemsTbody.appendChild(tr);
         itemIndex++;
+        updateTotals();
     }
 
-    document.getElementById('add-item-btn').addEventListener('click', addItemRow);
+    addItemBtn.addEventListener('click', addItemRow);
 
-    itemsTbody.addEventListener('click', function (e) {
+    itemsTbody.addEventListener('click', (e) => {
         if (e.target.closest('.remove-item-btn')) {
             e.target.closest('tr').remove();
             updateTotals();
         }
     });
 
-    itemsTbody.addEventListener('input', function(e) {
+    itemsTbody.addEventListener('input', (e) => {
         if (e.target.classList.contains('item-qty') || e.target.classList.contains('item-price') || e.target.classList.contains('item-gst')) {
             updateTotals();
         }
     });
 
-    updateTotals(); // Initial calculation
+    // Initialize totals
+    updateTotals();
     displayVendor(@json($purchaseOrder->vendor));
 });
 </script>

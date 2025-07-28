@@ -26,7 +26,6 @@ return new class extends Migration
             $table->text('terms_and_conditions')->nullable();
             $table->text('remarks')->nullable();
             $table->string('status')->default('draft'); // e.g., draft, sent, approved, completed
-            $table->date('expected_delivery_date')->nullable();
             $table->timestamps();
         });
     }

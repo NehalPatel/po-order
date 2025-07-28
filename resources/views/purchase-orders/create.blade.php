@@ -37,10 +37,6 @@
                 <input type="date" name="po_date" id="po_date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required value="{{ old('po_date', date('Y-m-d')) }}">
             </div>
             <div>
-                <label for="expected_delivery_date" class="block text-sm font-medium text-gray-700">Expected Delivery Date</label>
-                <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" value="{{ old('expected_delivery_date', now()->addWeek()->format('Y-m-d')) }}">
-            </div>
-            <div>
                 <label for="status" class="block text-sm font-medium text-gray-700">Order Status</label>
                 <select name="status" id="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                     <option value="draft" @if(old('status') == 'draft') selected @endif>Draft</option>
@@ -86,6 +82,12 @@
                 </tbody>
             </table>
             <button type="button" id="add-item-btn" class="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Add Item</button>
+            
+            <!-- Remark Field -->
+            <div class="mt-4">
+                <label for="remarks" class="block text-sm font-medium text-gray-700">PO Purpose</label>
+                <input type="text" name="remarks" id="remarks" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., New office built, Repairing, Maintenance, etc." value="{{ old('remarks') }}">
+            </div>
         </div>
 
         <!-- Summary and Notes -->
