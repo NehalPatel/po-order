@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDJ International College - Purchase Order</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Times New Roman', serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+
+        .po-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .header {
+            padding: 40px 30px 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .left-section {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #333;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            text-align: center;
+            background: #f8f8f8;
+            flex-shrink: 0;
+        }
+
+        .college-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .college-name {
+            font-size: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #2c3e50;
+            line-height: 1.2;
+        }
+
+        .managed-by {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .address {
+            font-size: 11px;
+            color: #555;
+            line-height: 1.3;
+        }
+
+        .right-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .po-details {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            font-size: 13px;
+        }
+
+        .po-details div {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            align-items: flex-end;
+        }
+
+        .po-details label {
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .po-details input {
+            border: none;
+            border-bottom: 1px solid #333;
+            padding: 3px 0;
+            font-size: 12px;
+            width: 180px;
+            text-align: right;
+            background: transparent;
+        }
+
+        .po-details input::placeholder {
+            color: #999;
+            font-style: italic;
+        }
+
+        .divider {
+            height: 1px;
+            background-color: #ddd;
+            margin: 0 30px;
+        }
+
+        .po-title {
+            text-align: center;
+            padding: 25px 0;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-decoration: underline;
+            color: #2c3e50;
+            letter-spacing: 1px;
+        }
+
+        .content {
+            padding: 0 30px 30px 30px;
+        }
+
+        .salutation {
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .intro-text {
+            margin-bottom: 25px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        .items-table th {
+            background-color: #f8f8f8;
+            padding: 10px 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .items-table td {
+            padding: 10px 8px;
+            border: 1px solid #ddd;
+            font-size: 12px;
+        }
+
+        .items-table input {
+            border: none;
+            width: 100%;
+            padding: 3px;
+            font-size: 12px;
+            background: transparent;
+        }
+
+        .sr-col {
+            width: 8%;
+        }
+
+        .desc-col {
+            width: 45%;
+        }
+
+        .qty-col {
+            width: 12%;
+        }
+
+        .rate-col {
+            width: 15%;
+        }
+
+        .amount-col {
+            width: 20%;
+        }
+
+        .footer {
+            padding: 30px;
+            border-top: 1px solid #ddd;
+        }
+
+        .signature-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+        }
+
+        .college-signature {
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .authorized-signature {
+            text-align: center;
+        }
+
+        .authorized-signature h4 {
+            text-decoration: underline;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .signature-line {
+            width: 150px;
+            height: 1px;
+            background-color: #333;
+            margin: 0 auto;
+        }
+
+        .notes {
+            margin-bottom: 25px;
+        }
+
+        .notes h4 {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .notes ol {
+            padding-left: 20px;
+            font-size: 12px;
+        }
+
+        .notes li {
+            margin-bottom: 6px;
+        }
+
+        .acceptance-section {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .acceptance-field {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .acceptance-field label {
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .acceptance-field input {
+            border: none;
+            border-bottom: 1px solid #ccc;
+            padding: 3px 0;
+            font-size: 12px;
+            background: transparent;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .po-container {
+                box-shadow: none;
+                border-radius: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .left-section {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .right-section {
+                align-items: flex-start;
+            }
+
+            .po-details {
+                align-items: flex-start;
+            }
+
+            .signature-section {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .acceptance-section {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="po-container">
+        <!-- Header Section -->
+        <div class="header">
+            <div class="left-section">
+                <div class="logo">
+                    विया विनयन<br>शोभते
+                </div>
+                <div class="college-info">
+                    <div class="college-name">
+                        SDJ<br>
+                        INTERNATIONAL<br>
+                        COLLEGE
+                    </div>
+                    <div class="managed-by">Managed by : Paras Education Trust</div>
+                    <div class="address">
+                        Plot No. 166, SDJ International College Campus,<br>
+                        B/h. Someshwara Bungalows, Vesu, Surat-395 007.<br>
+                        Gujarat, India.
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-section">
+                <div class="po-details">
+                    <div>
+                        <label>Ref. P.P. No.</label>
+                        <input type="text" placeholder="Enter reference number">
+                    </div>
+                    <div>
+                        <label>To,</label>
+                        <input type="text" placeholder="Enter recipient name/company">
+                    </div>
+                    <div>
+                        <label>Dated :</label>
+                        <input type="text" placeholder="dd/mm/yy">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="divider"></div>
+
+        <!-- Purchase Order Title -->
+        <div class="po-title">Purchase Order</div>
+
+        <!-- Content Section -->
+        <div class="content">
+            <div class="salutation">Sir,</div>
+
+            <div class="intro-text">
+                We are pleased to place an order to supply the below mentioned items for our Educational Institution
+            </div>
+
+            <!-- Items Table -->
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th class="sr-col">Sr.</th>
+                        <th class="desc-col">DESCRIPTION</th>
+                        <th class="qty-col">QTY</th>
+                        <th class="rate-col">NET RATE (₹)</th>
+                        <th class="amount-col">AMOUNT (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="text" placeholder="1"></td>
+                        <td><input type="text" placeholder="Enter item description"></td>
+                        <td><input type="number" placeholder="Qty"></td>
+                        <td><input type="number" step="0.01" placeholder="Rate"></td>
+                        <td><input type="number" step="0.01" placeholder="Amount"></td>
+                    </tr>
+                    <tr>
+                        <td><input type="text" placeholder="2"></td>
+                        <td><input type="text" placeholder="Enter item description"></td>
+                        <td><input type="number" placeholder="Qty"></td>
+                        <td><input type="number" step="0.01" placeholder="Rate"></td>
+                        <td><input type="number" step="0.01" placeholder="Amount"></td>
+                    </tr>
+                    <tr>
+                        <td><input type="text" placeholder="3"></td>
+                        <td><input type="text" placeholder="Enter item description"></td>
+                        <td><input type="number" placeholder="Qty"></td>
+                        <td><input type="number" step="0.01" placeholder="Rate"></td>
+                        <td><input type="number" step="0.01" placeholder="Amount"></td>
+                    </tr>
+                    <tr>
+                        <td><input type="text" placeholder="4"></td>
+                        <td><input type="text" placeholder="Enter item description"></td>
+                        <td><input type="number" placeholder="Qty"></td>
+                        <td><input type="number" step="0.01" placeholder="Rate"></td>
+                        <td><input type="number" step="0.01" placeholder="Amount"></td>
+                    </tr>
+                    <tr>
+                        <td><input type="text" placeholder="5"></td>
+                        <td><input type="text" placeholder="Enter item description"></td>
+                        <td><input type="number" placeholder="Qty"></td>
+                        <td><input type="number" step="0.01" placeholder="Rate"></td>
+                        <td><input type="number" step="0.01" placeholder="Amount"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer Section -->
+        <div class="footer">
+            <div class="signature-section">
+                <div class="college-signature">
+                    For, SDJ International College
+                </div>
+                <div class="authorized-signature">
+                    <h4>Authorized Signatory</h4>
+                    <div class="signature-line"></div>
+                </div>
+            </div>
+
+            <div class="notes">
+                <h4>Note :</h4>
+                <ol>
+                    <li>Rates mentioned above are inclusive of GST, no other charges.</li>
+                    <li>Delivery at School / College premises between 9:00 am to 5:00 pm.</li>
+                    <li>Bill to SDJ International College, Surat.</li>
+                    <li>Please send challan or Bill with material and mention our Purchase Order No. & Date.</li>
+                </ol>
+            </div>
+
+            <div class="acceptance-section">
+                <div class="acceptance-field">
+                    <label>Order Accepted :</label>
+                    <input type="text" placeholder="Enter acceptance status">
+                </div>
+                <div class="acceptance-field">
+                    <label>Date :</label>
+                    <input type="text" placeholder="dd/mm/yy">
+                </div>
+                <div class="acceptance-field">
+                    <label>Seal :</label>
+                    <input type="text" placeholder="Enter seal information">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-calculate amounts based on quantity and rate
+        document.addEventListener('DOMContentLoaded', function () {
+            const table = document.querySelector('.items-table');
+
+            table.addEventListener('input', function (e) {
+                if (e.target.type === 'number') {
+                    const row = e.target.closest('tr');
+                    const qtyInput = row.querySelector('td:nth-child(3) input');
+                    const rateInput = row.querySelector('td:nth-child(4) input');
+                    const amountInput = row.querySelector('td:nth-child(5) input');
+
+                    if (qtyInput && rateInput && amountInput) {
+                        const qty = parseFloat(qtyInput.value) || 0;
+                        const rate = parseFloat(rateInput.value) || 0;
+                        const amount = qty * rate;
+                        amountInput.value = amount.toFixed(2);
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
