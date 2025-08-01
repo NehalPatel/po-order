@@ -106,22 +106,23 @@
                                 <div class="field-value">{{ $index + 1 }}</div>
                             </td>
                             <td>
-                                <div class="field-value">{{ $item->item_name }}</div>
-                                @if($item->category)
-                                    <div class="item-category">{{ $item->category->name }} @if($item->subcategory)> {{ $item->subcategory->name }}@endif</div>
-                                @endif
+                                <div class="field-value">
+                                    {{ $item->item_name }}
+                                    @if($item->category)
+                                        <span class="item-category">({{ $item->category->name }}@if($item->subcategory) > {{ $item->subcategory->name }}@endif)</span>
+                                    @endif
+                                </div>
                             </td>
-                            <td>
+                            <td style="text-align: center;">
                                 <div class="field-value">{{ $item->qty }}</div>
                             </td>
-                            <td>
+                            <td style="text-align: right;">
                                 <div class="field-value">{{ number_format($item->unit_price, 2) }}</div>
                             </td>
-                            <td>
-                                <div class="field-value">{{ number_format($item->gst, 2) }}</div>
-                                <div class="tax-percentage">{{ $item->gst_percentage }}%</div>
+                            <td style="text-align: right;">
+                                <div class="field-value">({{ number_format($item->gst_percentage, 0) }}%) {{ number_format($item->gst, 2) }}</div>
                             </td>
-                            <td>
+                            <td style="text-align: right;">
                                 <div class="field-value">{{ number_format($item->total, 2) }}</div>
                             </td>
                         </tr>

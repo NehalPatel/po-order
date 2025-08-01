@@ -181,7 +181,7 @@
 
 .items-table th {
     background-color: #f8f8f8;
-    padding: 10px 8px;
+    padding: 5px;
     text-align: left;
     border: 1px solid #ddd;
     font-weight: bold;
@@ -300,7 +300,6 @@
 .signature-section {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 25px;
 }
 
 .college-signature {
