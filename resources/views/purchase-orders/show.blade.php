@@ -1,225 +1,225 @@
 @extends('layouts.admin')
 
 @section('content')
-<style>
-    .po-container {
-        font-family: 'Arial', sans-serif;
-        color: #333;
-    }
-    .header-section, .footer-section {
-        border-bottom: 2px solid #000;
-        padding-bottom: 1rem;
-        margin-bottom: 1.5rem;
-    }
-    .footer-section {
-        border-top: 2px solid #000;
-        border-bottom: none;
-        padding-top: 1rem;
-        margin-top: 1.5rem;
-        margin-bottom: 0;
-    }
-    .total-amount {
-        font-size: 1.5rem;
-        font-weight: bold;
-    }
-    .print-button {
-        background-color: #4A5568;
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 0.375rem;
-        border: none;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
-    .print-button:hover {
-        background-color: #2D3748;
-    }
-    .company-logo {
-        max-width: 80px;
-        max-height: 80px;
-        object-fit: contain;
-    }
-    .footer-logo {
-        max-width: 48px;
-        max-height: 48px;
-        object-fit: contain;
-    }
-    @media print {
-        body * {
-            visibility: hidden;
-        }
-        #po-details, #po-details * {
-            visibility: visible;
-        }
-        #po-details {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-        }
-        .no-print {
-            display: none;
-        }
-    }
-</style>
+<link rel="stylesheet" href="{{ asset('css/po-order.css') }}">
 
-<div id="po-details" class="bg-white shadow-lg rounded-lg overflow-hidden">
-    <div class="p-8 po-container">
-        <!-- Header -->
-        <div class="header-section grid grid-cols-2 gap-4 items-start">
-            <div class="flex items-start space-x-4">
+<div class="po-container">
+    <div class="po-document">
+        <!-- Header Section -->
+        <div class="header">
+            <div class="left-section">
                 @php
                     $settings = optional($purchaseOrder->team)->settings;
                     $setting = $settings ? $settings->first() : null;
                 @endphp
-
+                
                 @if($setting && $setting->logo)
-                    <div class="flex-shrink-0">
-                        <img src="{{ $setting->logo_url }}" alt="Company Logo" class="company-logo">
+                    <div class="logo">
+                        <img src="{{ $setting->logo_url }}" alt="Company Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%;">
+                    </div>
+                @else
+                    <div class="logo">
+                        विया विनयन<br>शोभते
                     </div>
                 @endif
-
-                <div>
-                    <h1 class="text-4xl font-bold uppercase">{{ $setting ? $setting->company_name : 'Your Company' }}</h1>
-                    @if($setting && $setting->address)
-                        <p class="text-gray-600">{{ $setting->address }}</p>
-                    @else
-                        <p class="text-gray-600">123 Main St, Anytown, ST 12345</p>
-                    @endif
-                    @if($setting && $setting->phone)
-                        <p class="text-gray-600">Phone: {{ $setting->phone }}</p>
-                    @endif
-                    @if($setting && $setting->email)
-                        <p class="text-gray-600">Email: {{ $setting->email }}</p>
-                    @endif
-                </div>
-            </div>
-            <div class="text-right">
-                <h2 class="text-3xl font-bold uppercase text-gray-800">Purchase Order</h2>
-                <p class="text-lg mt-2"><strong>PO Number:</strong> {{ $purchaseOrder->po_number }}</p>
-                <p><strong>Date:</strong> {{ $purchaseOrder->po_date->format('F j, Y') }}</p>
-                <div class="mt-3 flex flex-col items-end space-y-2">
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
-                        @if($purchaseOrder->status == 'draft') bg-gray-200 text-gray-800
-                        @elseif($purchaseOrder->status == 'sent') bg-blue-100 text-blue-800
-                        @elseif($purchaseOrder->status == 'approved') bg-green-100 text-green-800
-                        @elseif($purchaseOrder->status == 'completed') bg-purple-100 text-purple-800
-                        @elseif($purchaseOrder->status == 'cancelled') bg-red-100 text-red-800
-                        @endif">
-                        {{ ucfirst($purchaseOrder->status) }}
-                    </span>
+                
+                <div class="college-info">
+                    <div class="college-name">
+                        {{ $setting ? strtoupper($setting->company_name) : 'SDJ INTERNATIONAL COLLEGE' }}
+                    </div>
+                    <div class="managed-by">Managed by : Paras Education Trust</div>
+                    <div class="address">
+                        {!! $setting ? nl2br(e($setting->address)) : '' !!}
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Vendor and Ship To -->
-        <div class="grid grid-cols-2 gap-8 mb-8">
-            <div class="bg-gray-100 p-4 rounded-lg">
-                <h3 class="font-bold border-b pb-2 mb-2">VENDOR</h3>
-                @if($purchaseOrder->vendor)
-                    <p class="font-semibold">{{ $purchaseOrder->vendor->company_name }}</p>
-                    <p>{{ $purchaseOrder->vendor->address }}</p>
-                    @if($purchaseOrder->vendor->city && $purchaseOrder->vendor->state && $purchaseOrder->vendor->zipcode)
-                        <p>{{ $purchaseOrder->vendor->city }}, {{ $purchaseOrder->vendor->state }} {{ $purchaseOrder->vendor->zipcode }}</p>
-                    @endif
-                    <p><strong>Contact:</strong> {{ $purchaseOrder->vendor->contact_person_name }}</p>
-                    <p><strong>Email:</strong> {{ $purchaseOrder->vendor->email }}</p>
-                    <p><strong>Phone:</strong> {{ $purchaseOrder->vendor->phone }}</p>
-                @else
-                    <p class="text-red-500">Vendor not found.</p>
-                @endif
+        <!-- Divider -->
+        <div class="divider"></div>
+
+        <!-- Reference Fields -->
+        <div class="content">
+            <div class="po-details">
+                <div class="left-fields">
+                    <div class="field-group-inline">
+                        <label>Ref. P.P. No.</label>
+                        <div class="field-value placeholder">{{ $purchaseOrder->po_number }}</div>
+                    </div>
+                    <div class="field-group">
+                        <label>To,</label>
+                        @if($purchaseOrder->vendor)
+                            <div class="field-value">{{ $purchaseOrder->vendor->company_name }}</div>
+                            <div class="vendor-address">
+                                {{ $purchaseOrder->vendor->address }}<br>
+                                @if($purchaseOrder->vendor->city && $purchaseOrder->vendor->state && $purchaseOrder->vendor->zipcode)
+                                    {{ $purchaseOrder->vendor->city }}, {{ $purchaseOrder->vendor->state }} {{ $purchaseOrder->vendor->zipcode }}<br>
+                                @endif
+                                @if($purchaseOrder->vendor->phone)
+                                    Phone: {{ $purchaseOrder->vendor->phone }}
+                                @endif
+                                @if($purchaseOrder->vendor->email)
+                                    @if($purchaseOrder->vendor->phone) | @endif Email: {{ $purchaseOrder->vendor->email }}
+                                @endif
+                            </div>
+                        @else
+                            <div class="field-value">Vendor not found</div>
+                        @endif
+                    </div>
+                </div>
+                <div class="right-field">
+                    <div class="field-group-inline">
+                        <label>Dated :</label>
+                        <div class="field-value placeholder">{{ $purchaseOrder->po_date->format('d/m/Y') }}</div>
+                    </div>
+                </div>
             </div>
-            <!-- Remove the Ship To section entirely -->
         </div>
 
-        <!-- Items Table -->
-        <table class="w-full text-left table-auto">
-            <thead class="bg-gray-800 text-white">
-                <tr>
-                    <th class="p-4 uppercase">Item Description</th>
-                    <th class="p-4 uppercase text-right">Qty</th>
-                    <th class="p-4 uppercase text-right">Unit Price</th>
-                    <th class="p-4 uppercase text-right">GST</th>
-                    <th class="p-4 uppercase text-right">Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($purchaseOrder->items as $item)
-                    <tr class="border-b">
-                        <td class="p-4">{{ $item->item_name }}</td>
-                        <td class="p-4 text-right">{{ $item->qty }}</td>
-                        <td class="p-4 text-right">₹{{ number_format($item->unit_price, 2) }}</td>
-                        <td class="p-4 text-right">₹{{ number_format($item->gst, 2) }} ({{$item->gst_percentage}}%)</td>
-                        <td class="p-4 text-right">₹{{ number_format($item->total, 2) }}</td>
+        <!-- Purchase Order Title -->
+        <div class="po-title">Purchase Order</div>
+
+        <!-- Content Section -->
+        <div class="content">
+            <div class="salutation" style="margin-top: 10px;">Sir,</div>
+
+            <div class="intro-text">
+                We are pleased to place an order to supply the below mentioned items for our Educational Institution
+            </div>
+
+            <!-- Items Table -->
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th class="sr-col">Sr.</th>
+                        <th class="desc-col">DESCRIPTION</th>
+                        <th class="qty-col">QTY</th>
+                        <th class="rate-col">NET RATE (₹)</th>
+                        <th class="tax-col">TAX (₹)</th>
+                        <th class="amount-col">AMOUNT (₹)</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach ($purchaseOrder->items as $index => $item)
+                        <tr>
+                            <td>
+                                <div class="field-value">{{ $index + 1 }}</div>
+                            </td>
+                            <td>
+                                <div class="field-value">{{ $item->item_name }}</div>
+                                @if($item->category)
+                                    <div class="item-category">{{ $item->category->name }} @if($item->subcategory)> {{ $item->subcategory->name }}@endif</div>
+                                @endif
+                            </td>
+                            <td>
+                                <div class="field-value">{{ $item->qty }}</div>
+                            </td>
+                            <td>
+                                <div class="field-value">{{ number_format($item->unit_price, 2) }}</div>
+                            </td>
+                            <td>
+                                <div class="field-value">{{ number_format($item->gst, 2) }}</div>
+                                <div class="tax-percentage">{{ $item->gst_percentage }}%</div>
+                            </td>
+                            <td>
+                                <div class="field-value">{{ number_format($item->total, 2) }}</div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
 
-        <!-- Totals -->
-        <div class="flex justify-end mt-8">
-            <div class="w-full md:w-1/3">
-                <div class="flex justify-between py-2 border-b">
-                    <span>Subtotal</span>
-                    <span>₹{{ number_format($purchaseOrder->sub_total, 2) }}</span>
-                </div>
-                <div class="flex justify-between py-2 border-b">
-                    <span>Total GST</span>
-                    <span>₹{{ number_format($purchaseOrder->tax, 2) }}</span>
-                </div>
-                @if($purchaseOrder->shipping > 0)
-                <div class="flex justify-between py-2 border-b">
-                    <span>Shipping</span>
-                    <span>₹{{ number_format($purchaseOrder->shipping, 2) }}</span>
-                </div>
-                @endif
-                @if($purchaseOrder->other > 0)
-                <div class="flex justify-between py-2 border-b">
-                    <span>Other Charges</span>
-                    <span>₹{{ number_format($purchaseOrder->other, 2) }}</span>
-                </div>
-                @endif
-                <div class="flex justify-between py-2 font-bold text-lg">
-                    <span>Grand Total</span>
-                    <span>₹{{ number_format($purchaseOrder->grand_total, 2) }}</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Notes and Terms -->
-        <div class="mt-8 grid grid-cols-1 gap-8">
-             @if($purchaseOrder->notes)
-            <div>
-                <h4 class="font-bold mb-2">Notes</h4>
-                <p class="text-gray-600">{{ $purchaseOrder->notes }}</p>
-            </div>
-            @endif
-             @if($purchaseOrder->terms_and_conditions)
-            <div>
-                <h4 class="font-bold mb-2">Terms & Conditions</h4>
-                <p class="text-gray-600">{{ $purchaseOrder->terms_and_conditions }}</p>
-            </div>
-            @endif
-        </div>
-
-
-        <!-- Footer -->
-        <div class="footer-section text-center">
-            <p>Thank you for your business!</p>
-            <div class="flex items-center justify-center space-x-4 mt-2">
-                @if($setting && $setting->logo)
-                    <img src="{{ $setting->logo_url }}" alt="Company Logo" class="footer-logo">
-                @endif
-                <div class="text-gray-500">
-                    <p>{{ $setting ? $setting->company_name : 'Your Company' }}</p>
-                    @if($setting && $setting->website)
-                        <p>{{ $setting->website }}</p>
+            <!-- Summary Section -->
+            <div class="summary-section">
+                <table class="summary-table">
+                    <tr>
+                        <td class="label">Sub Total</td>
+                        <td class="value">₹{{ number_format($purchaseOrder->sub_total, 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Total GST</td>
+                        <td class="value">₹{{ number_format($purchaseOrder->tax, 2) }}</td>
+                    </tr>
+                    @if($purchaseOrder->shipping > 0)
+                    <tr>
+                        <td class="label">Shipping</td>
+                        <td class="value">₹{{ number_format($purchaseOrder->shipping, 2) }}</td>
+                    </tr>
                     @endif
+                    @if($purchaseOrder->other > 0)
+                    <tr>
+                        <td class="label">Other</td>
+                        <td class="value">₹{{ number_format($purchaseOrder->other, 2) }}</td>
+                    </tr>
+                    @endif
+                    <tr>
+                        <td class="label grand-total">Grand Total</td>
+                        <td class="value grand-total">₹{{ number_format($purchaseOrder->grand_total, 2) }}</td>
+                    </tr>
+                </table>
+                <div class="amount-in-words">
+                    in Words: {{ \App\Helpers\MiscHelper::amountToWords($purchaseOrder->grand_total) }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Section -->
+        <div class="footer">
+            <div class="signature-section">
+                <div class="college-signature">
+                    For, {{ $setting ? $setting->company_name : 'SDJ International College' }}
+                </div>
+                <div class="authorized-signature">
+                    <h4>Authorized Signatory</h4>
+                    <div class="signature-line"></div>
+                </div>
+            </div>
+
+            @if($purchaseOrder->notes || $purchaseOrder->terms_and_conditions)
+            <div class="notes">
+                <h4>Note :</h4>
+                <ol>
+                    @if($purchaseOrder->notes)
+                        @foreach(explode("\n", $purchaseOrder->notes) as $noteLine)
+                            @if(trim($noteLine) !== '')
+                                <li>{{ trim($noteLine) }}</li>
+                            @endif
+                        @endforeach
+                    @endif
+                    @if($purchaseOrder->terms_and_conditions)
+                        @foreach(explode("\n", $purchaseOrder->terms_and_conditions) as $termLine)
+                            @if(trim($termLine) !== '')
+                                <li>{{ trim($termLine) }}</li>
+                            @endif
+                        @endforeach
+                    @endif
+                    @if(!$purchaseOrder->notes && !$purchaseOrder->terms_and_conditions)
+                        <li>Rates mentioned above are inclusive of GST, no other charges.</li>
+                        <li>Delivery at School / College premises between 9:00 am to 5:00 pm.</li>
+                        <li>Bill to {{ $setting ? $setting->company_name : 'SDJ International College' }}, Surat.</li>
+                        <li>Please send challan or Bill with material and mention our Purchase Order No. & Date.</li>
+                    @endif
+                </ol>
+            </div>
+            @endif
+
+            <div class="acceptance-section">
+                <div class="acceptance-field">
+                    <label>Prepared By :</label>
+                    <div class="field-value"></div>
+                </div>
+                <div class="acceptance-field">
+                    <label>Checked By :</label>
+                    <div class="field-value"></div>
+                </div>
+                <div class="acceptance-field">
+                    <label>SDJ Group</label>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
 <div class="mt-6 flex justify-between items-center no-print">
     <a href="{{ route('purchase-orders.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md inline-flex items-center">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
